@@ -154,7 +154,7 @@ date()
 ```
 
 ```
-## [1] "Thu Jun 25 07:59:21 2020"
+## [1] "Thu Jun 25 08:21:32 2020"
 ```
 
 ```r
@@ -195,7 +195,7 @@ date()
 ```
 
 ```
-## [1] "Thu Jun 25 07:59:21 2020"
+## [1] "Thu Jun 25 08:21:32 2020"
 ```
 
 ```r
@@ -239,7 +239,7 @@ Sys.getenv()
 ## R_PRINTCMD              lpr
 ## R_QPDF                  /Library/Frameworks/R.framework/Resources/bin/qpdf
 ## R_RD4PDF                times,inconsolata,hyper
-## R_SESSION_TMPDIR        /var/folders/m8/4ph0yk_12zddg0z7btxz7tp80000gn/T//RtmpHM2U0X
+## R_SESSION_TMPDIR        /var/folders/m8/4ph0yk_12zddg0z7btxz7tp80000gn/T//Rtmp1znpod
 ## R_SHARE_DIR             /Library/Frameworks/R.framework/Resources/share
 ## R_SYSTEM_ABI            osx,gcc,gxx,gfortran,?
 ## R_TEXI2DVICMD           /usr/local/bin/texi2dvi
