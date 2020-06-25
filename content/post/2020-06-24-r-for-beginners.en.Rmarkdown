@@ -1,0 +1,87 @@
+---
+title: R for Beginners
+author: Colin James
+date: '2020-06-24'
+slug: r-for-beginners
+categories: []
+tags: []
+subtitle: ''
+summary: ''
+authors: []
+lastmod: '2020-06-24T15:28:58-04:00'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Basics
+
+What is R?  How can I use R?  R is an open-source statistical program that can handle anything from basic addition and subtraction to advanced modeling.  It is an amazing resource for anyone in data science, finance, health statistics, etc.  This blog is designed for those who are beginners wanting to learn more about R and its vast array of tools. This blog will become progressively more advanced but it is important to start from a solid base.
+
+
+### Addition
+
+Updated the variables to calculate eight hundred and fourty seven plus three thousand four hundred and eighty nine.
+
+```{r Addition}
+# Addition
+847 + 3489
+```
+
+### Subtraction
+
+Update the variables to calculate one thousand three hundred and seven minus eight seven.
+
+```{r Subtration}
+# Subtraction
+1307 - 87
+```
+
+### Multiplication
+
+Let's calculate twelve times ninety
+
+```{r Multiplication}
+# Multiplication
+12 * 90
+```
+
+### Division $\div$
+
+Determine one quarter of five thousand and four.
+
+```{r Division}
+# Division
+5004/4
+```
+
+
+
+
+
+## Session Info
+
+```{r}
+devtools::session_info()
+```
+
+```{r}
+date()
+sessionInfo()
+```
+
+```{r}
+date()
+Sys.getenv()
+```
+
+
+
+
