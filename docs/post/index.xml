@@ -119,7 +119,7 @@
 &lt;/code&gt;&lt;/pre&gt;
 &lt;pre&gt;&lt;code class=&#34;language-r&#34;&gt;date()
 &lt;/code&gt;&lt;/pre&gt;
-&lt;pre&gt;&lt;code&gt;## [1] &amp;quot;Thu Jun 25 08:21:32 2020&amp;quot;
+&lt;pre&gt;&lt;code&gt;## [1] &amp;quot;Thu Jun 25 08:32:58 2020&amp;quot;
 &lt;/code&gt;&lt;/pre&gt;
 &lt;pre&gt;&lt;code class=&#34;language-r&#34;&gt;sessionInfo()
 &lt;/code&gt;&lt;/pre&gt;
@@ -151,7 +151,7 @@
 &lt;/code&gt;&lt;/pre&gt;
 &lt;pre&gt;&lt;code class=&#34;language-r&#34;&gt;date()
 &lt;/code&gt;&lt;/pre&gt;
-&lt;pre&gt;&lt;code&gt;## [1] &amp;quot;Thu Jun 25 08:21:32 2020&amp;quot;
+&lt;pre&gt;&lt;code&gt;## [1] &amp;quot;Thu Jun 25 08:32:58 2020&amp;quot;
 &lt;/code&gt;&lt;/pre&gt;
 &lt;pre&gt;&lt;code class=&#34;language-r&#34;&gt;Sys.getenv()
 &lt;/code&gt;&lt;/pre&gt;
@@ -191,7 +191,7 @@
 ## R_PRINTCMD              lpr
 ## R_QPDF                  /Library/Frameworks/R.framework/Resources/bin/qpdf
 ## R_RD4PDF                times,inconsolata,hyper
-## R_SESSION_TMPDIR        /var/folders/m8/4ph0yk_12zddg0z7btxz7tp80000gn/T//Rtmp1znpod
+## R_SESSION_TMPDIR        /var/folders/m8/4ph0yk_12zddg0z7btxz7tp80000gn/T//RtmpadxCsy
 ## R_SHARE_DIR             /Library/Frameworks/R.framework/Resources/share
 ## R_SYSTEM_ABI            osx,gcc,gxx,gfortran,?
 ## R_TEXI2DVICMD           /usr/local/bin/texi2dvi
