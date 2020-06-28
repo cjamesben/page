@@ -18,19 +18,32 @@ subtitle = ""
   icon = "r-project"
   icon_pack = "fab"
   name = "R"
-  description = "90%"
+  
+[[feature]]
+  icon = "desktop"
+  icon_pack = "fa"
+  name = "SAS"
+  
+[[feature]]
+  icon = "desktop"
+  icon_pack = "fa"
+  name = "Tableau"
+
+[[feature]]
+  icon = "desktop"
+  icon_pack = "fa"
+  name = "ArcGIS"
+
+[[feature]]
+  icon = "excel"
+  icon_pack = "fa"
+  name = "Excel"
   
 [[feature]]
   icon = "chart-line"
   icon_pack = "fas"
   name = "Statistics"
-  description = "100%"  
   
-[[feature]]
-  icon = "camera-retro"
-  icon_pack = "fas"
-  name = "Photography"
-  description = "10%"
 
 # Uncomment to use emoji icons.
 # [[feature]]

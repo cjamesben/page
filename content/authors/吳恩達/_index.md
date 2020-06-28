@@ -1,48 +1,35 @@
 ---
 authors:
-- 吳恩達
-bio: My research interests include distributed robotics, mobile computing and programmable
-  matter.
+- admin
+bio: Experienced data analyst with a thorough understanding of complex statistical methods, experience with a variety of statistical tools, and knowledge in finance and financial analyses.   I am a leader and dependable colleague with a unique array of past experiences that bring a new perspective to the workplace. I work well independently, but thrive in team-based environments that are fast paced and dynamic.
 education:
-  courses:
-  - course: PhD in Artificial Intelligence
-    institution: Stanford University
-    year: 2012
-  - course: MEng in Artificial Intelligence
-    institution: Massachusetts Institute of Technology
-    year: 2009
-  - course: BSc in Artificial Intelligence
-    institution: Massachusetts Institute of Technology
-    year: 2008
-email: ""
+  
+email: "colinjamesbenusa@gmail.com"
 interests:
-- Artificial Intelligence
-- Computational Linguistics
-- Information Retrieval
+- Data Science
+- Finance
+
 organizations:
-- name: Stanford University
+- name: Virginia Department of Health
   url: ""
-role: Professor of Artificial Intelligence
+  
+role: Data Analyst
+
 social:
-- icon: envelope
-  icon_pack: fas
+- icon: linkedin
+  icon_pack: fa-linkedin
   link: '#contact'
-- icon: twitter
-  icon_pack: fab
-  link: https://twitter.com/GeorgeCushen
-- icon: google-scholar
-  icon_pack: ai
-  link: https://scholar.google.co.uk/citations?user=sIwtMXoAAAAJ
+ 
 - icon: github
   icon_pack: fab
-  link: https://github.com/gcushen
-superuser: false
-title: 吳恩達
+  link: https://github.com/cjamesben
+  
+superuser: true
+title: Colin Benusa
 user_groups:
 - Researchers
 - Visitors
 ---
 
-吳恩達 is a professor of artificial intelligence at the Stanford AI Lab. His research interests include distributed robotics, mobile computing and programmable matter. He leads the Robotic Neurobiology group, which develops self-reconfiguring robots, systems of self-organizing robots, and mobile sensor networks.
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed neque elit, tristique placerat feugiat ac, facilisis vitae arcu. Proin eget egestas augue. Praesent ut sem nec arcu pellentesque aliquet. Duis dapibus diam vel metus tempus vulputate.
+Experienced data analyst with a thorough understanding of complex statistical methods, experience with a variety of statistical tools, and knowledge in finance and financial analyses.  I am a leader and dependable colleague with a unique array of past experiences that bring a new perspective to the workplace. I work well independently, but thrive in team-based environments that are fast paced and dynamic.
+ 

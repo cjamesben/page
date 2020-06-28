@@ -33,6 +33,11 @@
   </url>
   
   <url>
+    <loc>/courses/</loc>
+    <lastmod>2020-06-24T15:28:58-04:00</lastmod>
+  </url>
+  
+  <url>
     <loc>/post/creating-tables-in-r/</loc>
     <lastmod>2020-06-24T15:29:29-04:00</lastmod>
   </url>
@@ -43,7 +48,7 @@
   </url>
   
   <url>
-    <loc>/post/r-for-beginners/</loc>
+    <loc>/courses/r-for-beginners/</loc>
     <lastmod>2020-06-24T15:28:58-04:00</lastmod>
   </url>
   
@@ -55,11 +60,6 @@
   <url>
     <loc>/post/writing-technical-content/</loc>
     <lastmod>2019-07-12T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>/courses/</loc>
-    <lastmod>2019-05-05T00:00:00+01:00</lastmod>
   </url>
   
   <url>
@@ -78,7 +78,7 @@
   </url>
   
   <url>
-    <loc>/author/nelson-bighetti/</loc>
+    <loc>/author/colin-benusa/</loc>
     <lastmod>2019-09-05T00:00:00+00:00</lastmod>
   </url>
   
@@ -168,12 +168,12 @@
   </url>
   
   <url>
-    <loc>/category/demo/</loc>
+    <loc>/author/colin-benusa/</loc>
     <lastmod>2019-04-17T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>/author/%E5%90%B3%E6%81%A9%E9%81%94/</loc>
+    <loc>/category/demo/</loc>
     <lastmod>2019-04-17T00:00:00+00:00</lastmod>
   </url>
   
