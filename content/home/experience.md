@@ -18,27 +18,39 @@ date_format = "Jan 2006"
 #   Leave `date_end` empty if it's your current employer.
 #   Begin/end multi-line descriptions with 3 quotes `"""`.
 [[experience]]
-  title = "CEO"
-  company = "GenCoin"
+  title = "Newborn Screening Epidemiologist"
+  company = "Virgina Department of Health"
   company_url = ""
-  location = "California"
-  date_start = "2017-01-01"
+  location = "Richmond, Virginia"
+  date_start = "2017-07-25"
   date_end = ""
-  description = """
+  description = """Epidemiologist responsible for carrying out a broad and complex range of analytical epidemiological investigations associated specifically with the Early Hearing, Detection and Intervention and Newborn Defects Programs. Also provide support for epidemiological studies, database development, analytics and visualization support to other programs in our Division."""
   Responsibilities include:
   
-  * Analysing
-  * Modelling
-  * Deploying
+  * Data Cleaning
+  * Complex Data Analysis
+  * Address Program Deficiencies
   """
 
 [[experience]]
-  title = "Professor"
-  company = "University X"
+  title = "Policy Analyst"
+  company = "Virginia Department of Health"
   company_url = ""
-  location = "California"
-  date_start = "2016-01-01"
-  date_end = "2016-12-31"
-  description = """Taught electronic engineering and researched semiconductor physics."""
+  location = "Richmond, Virginia"
+  date_start = "2016-10-18"
+  date_end = "2017-07-25"
+  description = """Responsible for the epidemiological investigation and broad oversight of the quality of data collected by the EHDI program. Also responsible for data reporting to strategic stakeholders."""
+
+
+[[experience]]
+  title = "Policy Analyst"
+  company = "Virginia Department of Health"
+  company_url = ""
+  location = "Richmond, Virginia"
+  date_start = "2016-06-02"
+  date_end = "2016-08-13"
+  description = """Internship to develop and carried out epidemiological investigation to determine pulse oximetry and newborn screening device screening (NDBS) compliance for all hospitals/birthing centers in Virginia."""
+
+
 
 +++
