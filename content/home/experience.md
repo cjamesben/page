@@ -17,6 +17,8 @@ date_format = "Jan 2006"
 #   Required fields are `title`, `company`, and `date_start`.
 #   Leave `date_end` empty if it's your current employer.
 #   Begin/end multi-line descriptions with 3 quotes `"""`.
+
+
 [[experience]]
   title = "Newborn Screening Epidemiologist"
   company = "Virgina Department of Health"
@@ -50,7 +52,4 @@ date_format = "Jan 2006"
   date_start = "2016-06-02"
   date_end = "2016-08-13"
   description = """Internship to develop and carried out epidemiological investigation to determine pulse oximetry and newborn screening device screening (NDBS) compliance for all hospitals/birthing centers in Virginia."""
-
-
-
 +++
