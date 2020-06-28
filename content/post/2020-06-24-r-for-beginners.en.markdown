@@ -102,7 +102,7 @@ devtools::session_info()
 ##  collate  en_US.UTF-8                 
 ##  ctype    en_US.UTF-8                 
 ##  tz       America/New_York            
-##  date     2020-06-25                  
+##  date     2020-06-28                  
 ## 
 ## ─ Packages ───────────────────────────────────────────────────────────────────
 ##  package     * version date       lib source        
@@ -154,7 +154,7 @@ date()
 ```
 
 ```
-## [1] "Thu Jun 25 08:32:58 2020"
+## [1] "Sun Jun 28 13:52:33 2020"
 ```
 
 ```r
@@ -195,7 +195,7 @@ date()
 ```
 
 ```
-## [1] "Thu Jun 25 08:32:58 2020"
+## [1] "Sun Jun 28 13:52:33 2020"
 ```
 
 ```r
@@ -239,7 +239,7 @@ Sys.getenv()
 ## R_PRINTCMD              lpr
 ## R_QPDF                  /Library/Frameworks/R.framework/Resources/bin/qpdf
 ## R_RD4PDF                times,inconsolata,hyper
-## R_SESSION_TMPDIR        /var/folders/m8/4ph0yk_12zddg0z7btxz7tp80000gn/T//RtmpadxCsy
+## R_SESSION_TMPDIR        /var/folders/m8/4ph0yk_12zddg0z7btxz7tp80000gn/T//RtmpBEL1P3
 ## R_SHARE_DIR             /Library/Frameworks/R.framework/Resources/share
 ## R_SYSTEM_ABI            osx,gcc,gxx,gfortran,?
 ## R_TEXI2DVICMD           /usr/local/bin/texi2dvi
@@ -253,7 +253,7 @@ Sys.getenv()
 ## RS_SHARED_SECRET        2824752491622650073984943658
 ## RSTUDIO                 1
 ## RSTUDIO_CONSOLE_COLOR   256
-## RSTUDIO_CONSOLE_WIDTH   107
+## RSTUDIO_CONSOLE_WIDTH   95
 ## RSTUDIO_PANDOC          /Applications/RStudio.app/Contents/MacOS/pandoc
 ## RSTUDIO_SESSION_PORT    34856
 ## RSTUDIO_USER_IDENTITY   colinbenusa
