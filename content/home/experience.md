@@ -52,4 +52,5 @@ date_format = "Jan 2006"
   date_start = "2016-06-02"
   date_end = "2016-08-13"
   description = """Internship to develop and carried out epidemiological investigation to determine pulse oximetry and newborn screening device screening (NDBS) compliance for all hospitals/birthing centers in Virginia."""
+  
 +++
