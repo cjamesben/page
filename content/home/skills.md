@@ -20,7 +20,7 @@ subtitle = ""
   name = "R"
   
 [[feature]]
-  icon = "desktop"
+  icon = "laptop-code"
   icon_pack = "fa"
   name = "SAS"
   
@@ -30,12 +30,12 @@ subtitle = ""
   name = "Tableau"
 
 [[feature]]
-  icon = "desktop"
+  icon = "map-marked-alt"
   icon_pack = "fa"
   name = "ArcGIS"
 
 [[feature]]
-  icon = "excel"
+  icon = "file-excel"
   icon_pack = "fa"
   name = "Excel"
   

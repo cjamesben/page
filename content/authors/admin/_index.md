@@ -17,8 +17,8 @@ role: Data Analyst
 
 social:
 - icon: linkedin
-  icon_pack: fa-linkedin
-  link: '#contact'
+  icon_pack: fab
+  link: 'https://www.linkedin.com/in/colin-benusa-320557141/'
  
 - icon: github
   icon_pack: fab
