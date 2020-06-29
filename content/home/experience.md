@@ -27,12 +27,6 @@ date_format = "Jan 2006"
   date_start = "2017-07-25"
   date_end = ""
   description = """Epidemiologist responsible for carrying out a broad and complex range of analytical epidemiological investigations associated specifically with the Early Hearing, Detection and Intervention and Newborn Defects Programs. Also provide support for epidemiological studies, database development, analytics and visualization support to other programs in our Division."""
-  Responsibilities include:
-  
-  * Data Cleaning
-  * Complex Data Analysis
-  * Address Program Deficiencies
-  """
 
 [[experience]]
   title = "Policy Analyst"
