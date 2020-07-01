@@ -33,11 +33,6 @@
   </url>
   
   <url>
-    <loc>/courses/</loc>
-    <lastmod>2020-06-24T15:28:58-04:00</lastmod>
-  </url>
-  
-  <url>
     <loc>/post/creating-tables-in-r/</loc>
     <lastmod>2020-06-24T15:29:29-04:00</lastmod>
   </url>
@@ -48,13 +43,18 @@
   </url>
   
   <url>
-    <loc>/courses/r-for-beginners/</loc>
+    <loc>/post/r-for-beginners/r-for-beginners/</loc>
     <lastmod>2020-06-24T15:28:58-04:00</lastmod>
   </url>
   
   <url>
     <loc>/post/writing-technical-content/</loc>
     <lastmod>2019-07-12T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/courses/</loc>
+    <lastmod>2019-05-05T00:00:00+01:00</lastmod>
   </url>
   
   <url>

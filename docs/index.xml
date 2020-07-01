@@ -90,9 +90,9 @@
     
     <item>
       <title>R for Beginners</title>
-      <link>/courses/r-for-beginners/</link>
+      <link>/post/r-for-beginners/r-for-beginners/</link>
       <pubDate>Wed, 24 Jun 2020 00:00:00 +0000</pubDate>
-      <guid>/courses/r-for-beginners/</guid>
+      <guid>/post/r-for-beginners/r-for-beginners/</guid>
       <description>&lt;h2 id=&#34;r-basics&#34;&gt;R Basics&lt;/h2&gt;
 &lt;p&gt;What is R?  How can I use R?  R is an open-source statistical program that can handle anything from basic addition and subtraction to advanced modeling.  It is an amazing resource for anyone in data science, finance, health statistics, etc.  This blog is designed for those who are beginners wanting to learn more about R and its vast array of tools. This blog will become progressively more advanced but it is important to start from a solid base.&lt;/p&gt;
 &lt;h3 id=&#34;addition&#34;&gt;Addition&lt;/h3&gt;
