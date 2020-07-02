@@ -1,0 +1,127 @@
+---
+title: Understanding Data Types in R
+author: Colin James
+date: '2020-06-30'
+slug: understanding-data-types-in-r
+categories: []
+tags: []
+subtitle: ''
+summary: ''
+authors: []
+lastmod: '2020-06-30T20:40:05-04:00'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+---
+
+## Data Types
+
+A data type is an attribute of data that gives a programmer an indicator of how the data will be used. In R there are a wide assortment of data types that include scalars(character, numeric, logical, integer, complex), vectors, matrices, and data frames.  It is important to know the data type of each variable in a dataset before analyses can be done.  Data types can make calculations faster and more efficient depending on the analyses.
+
+
+### Scalars
+
+Scalars are data types that hold only one type at a time, whether it be a character, numeric, logical, integer, or complex. We are going to download a multitude of datasets through the 'datasets' package in R to look at some examples of data types. 
+
+Character variable data types are usually alphabetic but always require "" when used in a dataset. Ex: "Apple", "Porsche", "Tom"... etc.
+
+Numeric is self exaplanatory.  This datatype is the most common data type that I encounter and include anything, well numeric.  Ex: 9494, 950300, 00008... etc.  The two most common types of numeric data types are integer and double.
+
+1)Integer is a numeric data type that stores whole numbers, anything from negative to positive values.  For SQL servers,integers range from -2,147,483,647 to 2,147,483,647.  
+  
+2)Double is a numeric data type that stores numbers with up to 17 decimals.  Ex.  59903.99595959
+
+Logical is a special data type with only two possible values.  Ex: 0/1, true/false, yes/no, etc.  I typically use logical data types as a flag variable if I want to identify if a condition exists or not.
+
+
+Complex data type is anything that is not included in the previous data types.  Example is 1 - 2i, see example below
+
+```{r Scalars}
+# numeric is probably the most common data type you will encounter in data science
+
+# downloading 'datasets' package
+library(datasets)
+
+# viewing all datasets in the package
+data()
+
+# picking 'mtcars' dataset to view. Head function gives us a quick glance at all of the columns
+head(mtcars)
+
+# 'str' function like the head function lets us view all variables in the dataset but lists the data types in the dataset as well
+str(mtcars)
+
+#Here we can see the UC Berkley Admissions dataset that contains character variables
+str(UCBAdmissions)
+
+#Example of complex data type.  The 'class' function is used to determine the data type.
+z = 1 + 2i
+
+z
+
+class(z)
+```
+
+
+### Vectors
+
+A vector is a basic data structure that always contain elements of the same type
+
+```{r Vectors}
+
+# the '<-' is used to store values in a variable, and 'c()' is the combine function
+ x <- c(9, 4, 5, 6, 7, 10)
+
+#all values in this data structure are double
+typeof(x)
+
+#Because vectors contain elements of the same type, this function will try to convert all values in the vector to one data type.  This conversion occurs from lower to higher types, from logical to integer to double to character, with character data type being the most influential
+x <- c(1, 5.4, TRUE, "hello")
+
+x
+
+# Here we can see that all values were converted to a character data type
+class(x)
+
+#There are many caveats to vectors but for the sake of staying on topic, we will discuss in another post
+
+```
+
+
+
+### Matrices
+
+Matrices are data structures that are two dimensional, and like vectors will contain values of all the same data type.
+
+Personally I do not use matrices all that much, except maybe correlation tables related to stock analyses, but otherwise they are important to know about.
+
+```{r Matrices}
+#You can create a matrix using the 'matrix' function matrix(data, nrow, ncol, byrow, dimnames)
+M <- matrix(c(1:45), nrow=5, byrow = TRUE)
+
+#new function 'print' shows the input value or matrix
+print(M)
+
+
+
+```
+
+### Data Frames
+
+Data Frames are the data type that most people are familiar with. Like matrices, data frames are two dimensional structures but contain variables that can be composed of different data types such as numeric, character or logical.  Data frames have rows and columns, usually with rows of unique observations
+
+```{r Data Frames}
+data()
+
+#Looking at Freeny's Revenue Data.  
+head(freeny)
+
+class(freeny)
+
+```
+
+
+Hope this information has been helpful.

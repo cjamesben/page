@@ -33,12 +33,17 @@
   </url>
   
   <url>
-    <loc>/post/creating-tables-in-r/</loc>
-    <lastmod>2020-06-24T15:29:29-04:00</lastmod>
+    <loc>/post/</loc>
+    <lastmod>2020-06-30T20:40:05-04:00</lastmod>
   </url>
   
   <url>
-    <loc>/post/</loc>
+    <loc>/post/understanding-data-types-in-r/</loc>
+    <lastmod>2020-06-30T20:40:05-04:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/post/creating-tables-in-r/</loc>
     <lastmod>2020-06-24T15:29:29-04:00</lastmod>
   </url>
   
