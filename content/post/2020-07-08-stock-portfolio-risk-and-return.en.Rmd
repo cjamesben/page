@@ -3,6 +3,7 @@ title: "Stock Portfolio Risk and Return"
 author: "Colin James"
 date: '2020-07-08'
 output:
+  pdf_document: default
   html_document:
     df_print: paged
 featured: no
@@ -21,12 +22,14 @@ authors: []
 ---
 
 ```{r Installing Necessary Packages, message=FALSE, warning=FALSE}
-install.packages("tidyquant")
-install.packages("timetk")
+#install.packages("tidyquant")
+#install.packages("timetk")
+#install.packages("plyr")
 
 library("tidyquant")
 library("timetk")
 library("ggplot2")
+library("plyr")
 
 ```
 

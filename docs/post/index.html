@@ -240,7 +240,7 @@
   <meta property="og:description" content="Data Analyst"><meta property="og:image" content="/images/icon_hu0b7a4cb9992c9ac0e91bd28ffd38dd00_9727_512x512_fill_lanczos_center_2.png">
   <meta property="twitter:image" content="/images/icon_hu0b7a4cb9992c9ac0e91bd28ffd38dd00_9727_512x512_fill_lanczos_center_2.png"><meta property="og:locale" content="en-us">
   
-    <meta property="og:updated_time" content="2020-07-03T00:00:00&#43;00:00">
+    <meta property="og:updated_time" content="2020-07-08T00:00:00&#43;00:00">
   
 
   
@@ -591,15 +591,13 @@
   <div class="media-body">
 
     <h3 class="article-title mb-0 mt-0">
-      <a href="/post/analysis-of-financial-statements/" >Analysis of Financial Statements</a>
+      <a href="/post/stock-portfolio-risk-and-return/" >Stock Portfolio Risk and Return</a>
     </h3>
 
     
-    <a href="/post/analysis-of-financial-statements/" class="summary-link">
+    <a href="/post/stock-portfolio-risk-and-return/" class="summary-link">
       <div class="article-style">
-         Analysis of Financial Statments In this blog we are going to connect to the EDGAR database and analyze the most recent 10Ks of Amazon
-##Connecting to EDGAR database
- 
+        #install.packages(&quot;tidyquant&quot;) #install.packages(&quot;timetk&quot;) #install.packages(&quot;plyr&quot;) library(&quot;tidyquant&quot;) library(&quot;timetk&quot;) library(&quot;ggplot2&quot;) library(&quot;plyr&quot;) #Data is downloaded using tq_get function from tidyquant RSP &lt;- tq_get(&quot;RSP&quot;, from = &#39;2003-04-30&#39;, to = &quot;2020-07-07&quot;, get = &quot;stock.prices&quot;) #Stock Prices are Plotted RSP %&gt;% ggplot(aes(x = date, y = adjusted)) + geom_line(size=0.
       </div>
     </a>
     
@@ -625,7 +623,7 @@
           Last updated on
       
     
-    Jul 3, 2020
+    Jul 8, 2020
   </span>
   
 
