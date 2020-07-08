@@ -13,6 +13,22 @@
     </image>
     
     <item>
+      <title>Analysis of Financial Statements</title>
+      <link>/post/analysis-of-financial-statements/</link>
+      <pubDate>Fri, 03 Jul 2020 00:00:00 +0000</pubDate>
+      <guid>/post/analysis-of-financial-statements/</guid>
+      <description>
+
+
+&lt;div id=&#34;analysis-of-financial-statments&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Analysis of Financial Statments&lt;/h2&gt;
+&lt;p&gt;In this blog we are going to connect to the EDGAR database and analyze the most recent 10Ks of Amazon&lt;/p&gt;
+&lt;p&gt;##Connecting to EDGAR database&lt;/p&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+    <item>
       <title>Data Types</title>
       <link>/post/data-types/</link>
       <pubDate>Fri, 03 Jul 2020 00:00:00 +0000</pubDate>

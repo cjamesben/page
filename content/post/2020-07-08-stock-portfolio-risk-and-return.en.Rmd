@@ -1,0 +1,45 @@
+---
+title: "Stock Portfolio Risk and Return"
+author: "Colin James"
+date: '2020-07-08'
+output:
+  html_document:
+    df_print: paged
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+lastmod: '2020-07-08T17:49:20-04:00'
+categories: []
+projects: []
+slug: stock-portfolio-risk-and-return
+subtitle: ''
+summary: ''
+tags: []
+authors: []
+---
+
+```{r Installing Necessary Packages, message=FALSE, warning=FALSE}
+install.packages("tidyquant")
+install.packages("timetk")
+
+library("tidyquant")
+library("timetk")
+library("ggplot2")
+
+```
+
+```{r Download and View Stock Prices, message=FALSE, warning=FALSE}
+#Data is downloaded using tq_get function from tidyquant
+RSP <- tq_get("RSP", from = '2003-04-30', to = "2020-07-07", get = "stock.prices")
+
+#Stock Prices are Plotted
+RSP %>%
+  ggplot(aes(x = date, y = adjusted)) +
+  geom_line(size=0.5, color="steel blue") +
+  ggtitle("Guggenheim Invest S&P 500 Pure Value ETF since 2003") +
+  scale_x_date(date_breaks = "years", date_labels = "%Y") +
+  labs(x = "Date", y = "Adjusted Price")
+
+```

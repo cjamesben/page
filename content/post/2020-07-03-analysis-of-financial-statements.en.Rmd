@@ -1,0 +1,176 @@
+---
+title: Analysis of Financial Statements
+author: Colin James
+date: '2020-07-03'
+slug: analysis-of-financial-statements
+categories: []
+tags: []
+subtitle: ''
+summary: ''
+authors: []
+lastmod: '2020-07-03T15:00:32-04:00'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+---
+
+```{r Installing Necessary Packages, message=FALSE, warning=FALSE}
+install.packages("XBRL")
+install.packages("finreportr")
+
+library("ggplot2")
+library("quantmod")
+library("dplyr")
+library("finreportr")
+library("XBRL")
+
+```
+## Analysis of Financial Statments
+
+In this blog we are going to connect to the EDGAR database and analyze the most recent 10Ks of Apple
+
+##Liquidity Ratios
+
+#XBRL
+
+Quick note about the finreportr function.  XBRl stands for eXtensive Business Reporting Language is a global framework to exchange business information.  The reason this R package makes this information so readily accessible is because the package is able to convert XBRL into a more usable format.  
+
+```{r Current Ratio}
+#install the financial report (finreportr) R package. 
+  CompanyInfo("AAPL")
+  
+  AnnualReports("AAPL")
+  
+  appleincomestatement <- GetIncome("AAPL", 2010)
+  
+#Liquidity Ratios, Current and Quick.  Current Ratio = Current Assets/Current Liabilities.
+  
+#Current Ratio
+applebalancesheet10 <- GetBalanceSheet("AAPL", 2010)
+Year_2010 <- as.numeric(applebalancesheet10[31,3])/as.numeric(applebalancesheet10[49,3])
+
+applebalancesheet11 <- GetBalanceSheet("AAPL", 2011)
+Year_2011 <- as.numeric(applebalancesheet11[31,3])/as.numeric(applebalancesheet11[49,3])
+
+applebalancesheet12 <- GetBalanceSheet("AAPL", 2012)
+Year_2012 <- as.numeric(applebalancesheet12[28,3])/as.numeric(applebalancesheet12[48,3])
+
+applebalancesheet13 <- GetBalanceSheet("AAPL", 2013)
+Year_2013 <- as.numeric(applebalancesheet13[30,3])/as.numeric(applebalancesheet13[50,3])
+
+applebalancesheet14 <- GetBalanceSheet("AAPL", 2014)
+Year_2014 <- as.numeric(applebalancesheet14[30,3])/as.numeric(applebalancesheet14[52,3])
+
+applebalancesheet15 <- GetBalanceSheet("AAPL", 2015)
+Year_2015 <- as.numeric(applebalancesheet15[30,3])/as.numeric(applebalancesheet15[54,3])
+
+applebalancesheet16 <- GetBalanceSheet("AAPL", 2016)
+Year_2016 <- as.numeric(applebalancesheet16[16,3])/as.numeric(applebalancesheet16[42,3])
+
+applebalancesheet17 <- GetBalanceSheet("AAPL", 2017)
+Year_2017 <- as.numeric(applebalancesheet17[16,3])/as.numeric(applebalancesheet17[40,3])
+
+#Create table for 
+C_Ratios <- as.data.frame(rbind(Year_2010,Year_2011,Year_2012,Year_2013, Year_2014,Year_2015,Year_2016, Year_2017))
+
+C_Years <- rbind("2010", "2011", "2012", "2013", "2014", "2015", "2016", "2017")
+
+CA_By_Year <- as.data.frame(cbind(C_Years, C_Ratios))
+
+#Created a simple line graph to show the Current Ratio Over time
+ggplot(data = CA_By_Year, aes(x = C_Years, y = V1, group=1)) + 
+  geom_line(color="red") +
+  geom_hline(aes(yintercept = mean(V1)), color="blue") +
+  labs(title="Current Ratios for Apple", x="Year", y="Current Ratio")
+
+```
+
+
+```{r Quick Ratio}
+#install the edgar R package
+  appleincomestatement <- GetIncome("AAPL", 2010)
+  
+#Liquidity Ratios, Current and Quick.
+#Quick Ratio = Current Assets - Inventories/Current Liabilities
+  
+#Quick Ratio
+Year_2010 <- (as.numeric(applebalancesheet10[31,3])-as.numeric(applebalancesheet10[23,3]))/as.numeric(applebalancesheet10[49,3])
+
+Year_2011 <- (as.numeric(applebalancesheet11[31,3])-as.numeric(applebalancesheet11[23,3]))/as.numeric(applebalancesheet11[49,3])
+
+Year_2012 <- (as.numeric(applebalancesheet12[30,3])-as.numeric(applebalancesheet12[22,3]))/as.numeric(applebalancesheet12[48,3])
+
+Year_2013 <- (as.numeric(applebalancesheet13[30,3])-as.numeric(applebalancesheet13[22,3]))/as.numeric(applebalancesheet13[50,3])
+
+Year_2014 <- (as.numeric(applebalancesheet14[30,3])-as.numeric(applebalancesheet14[22,3]))/as.numeric(applebalancesheet14[52,3])
+
+Year_2015 <- (as.numeric(applebalancesheet15[30,3])-as.numeric(applebalancesheet15[22,3]))/as.numeric(applebalancesheet15[54,3])
+
+Year_2016 <- (as.numeric(applebalancesheet16[16,3])-as.numeric(applebalancesheet16[10,3]))/as.numeric(applebalancesheet16[42,3])
+
+Year_2017 <- (as.numeric(applebalancesheet17[16,3])-as.numeric(applebalancesheet17[10,3]))/as.numeric(applebalancesheet17[40,3])
+
+#Create table for 
+Q_Ratios <- as.data.frame(rbind(Year_2010,Year_2011,Year_2012,Year_2013, Year_2014,Year_2015,Year_2016, Year_2017))
+
+Q_Years <- rbind("2010", "2011", "2012", "2013", "2014", "2015", "2016", "2017")
+
+QR_By_Year <- as.data.frame(cbind(Q_Years, Q_Ratios))
+
+#Created a simple line graph to show the Current Ratio Over time
+ggplot(data = QR_By_Year, aes(x = Q_Years, y = V1, group=1)) + 
+  geom_line(color="red") +
+  geom_hline(aes(yintercept = mean(V1)), color="blue") +
+  labs(title="Current Ratios for Apple", x="Year", y="Quick Ratio")
+
+```
+
+##Asset Management Ratios
+
+```{r Inventory Turnover Ratios}
+#install the edgar R package
+  appleincomestatement <- GetIncome("AAPL", 2010)
+
+print(AnnualReports("AAPL"))  
+  
+head(GetIncome("GOOG", 2016))
+
+#Liquidity Ratios, Current and Quick.
+#Quick Ratio = Current Assets - Inventories/Current Liabilities
+  
+#Quick Ratio
+appleincomestatement10 <- GetIncome("GOOG", 2010)
+
+Year_2010 <- (as.numeric(appleincomestatement10[31,3])/as.numeric(applebalancesheet10[23,3])
+
+Year_2011 <- (as.numeric(applebalancesheet11[31,3])-as.numeric(applebalancesheet11[23,3]))/as.numeric(applebalancesheet11[49,3])
+
+Year_2012 <- (as.numeric(applebalancesheet12[30,3])-as.numeric(applebalancesheet12[22,3]))/as.numeric(applebalancesheet12[48,3])
+
+Year_2013 <- (as.numeric(applebalancesheet13[30,3])-as.numeric(applebalancesheet13[22,3]))/as.numeric(applebalancesheet13[50,3])
+
+Year_2014 <- (as.numeric(applebalancesheet14[30,3])-as.numeric(applebalancesheet14[22,3]))/as.numeric(applebalancesheet14[52,3])
+
+Year_2015 <- (as.numeric(applebalancesheet15[30,3])-as.numeric(applebalancesheet15[22,3]))/as.numeric(applebalancesheet15[54,3])
+
+Year_2016 <- (as.numeric(applebalancesheet16[16,3])-as.numeric(applebalancesheet16[10,3]))/as.numeric(applebalancesheet16[42,3])
+
+Year_2017 <- (as.numeric(applebalancesheet17[16,3])-as.numeric(applebalancesheet17[10,3]))/as.numeric(applebalancesheet17[40,3])
+
+#Create table for 
+Q_Ratios <- as.data.frame(rbind(Year_2010,Year_2011,Year_2012,Year_2013, Year_2014,Year_2015,Year_2016, Year_2017))
+
+Q_Years <- rbind("2010", "2011", "2012", "2013", "2014", "2015", "2016", "2017")
+
+QR_By_Year <- as.data.frame(cbind(Q_Years, Q_Ratios))
+
+#Created a simple line graph to show the Current Ratio Over time
+ggplot(data = QR_By_Year, aes(x = Q_Years, y = V1, group=1)) + 
+  geom_line(color="red") +
+  geom_hline(aes(yintercept = mean(V1)), color="blue") +
+  labs(title="Current Ratios for Apple", x="Year", y="Quick Ratio")
+
+```
