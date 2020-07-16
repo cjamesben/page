@@ -5,12 +5,318 @@
     <link>/post/</link>
       <atom:link href="/post/index.xml" rel="self" type="application/rss+xml" />
     <description>Posts</description>
-    <generator>Source Themes Academic (https://sourcethemes.com/academic/)</generator><language>en-us</language><lastBuildDate>Fri, 03 Jul 2020 00:00:00 +0000</lastBuildDate>
+    <generator>Source Themes Academic (https://sourcethemes.com/academic/)</generator><language>en-us</language><lastBuildDate>Wed, 15 Jul 2020 00:00:00 +0000</lastBuildDate>
     <image>
       <url>/images/icon_hu0b7a4cb9992c9ac0e91bd28ffd38dd00_9727_512x512_fill_lanczos_center_2.png</url>
       <title>Posts</title>
       <link>/post/</link>
     </image>
+    
+    <item>
+      <title>Stock Return and Risk Calculations</title>
+      <link>/post/stock-return-and-risk-calculations/</link>
+      <pubDate>Wed, 15 Jul 2020 00:00:00 +0000</pubDate>
+      <guid>/post/stock-return-and-risk-calculations/</guid>
+      <description>&lt;h3 id=&#34;this-post-will-center-on-simple-stock-portfolio-risk-and-return-analysis-using-r&#34;&gt;This post will center on simple stock portfolio risk and return analysis using R&lt;/h3&gt;
+&lt;h2 id=&#34;install-all-necessary-packages&#34;&gt;Install all necessary packages.&lt;/h2&gt;
+&lt;pre&gt;&lt;code class=&#34;language-r&#34;&gt;#install.packages(&amp;quot;tidyquant&amp;quot;)
+#install.packages(&amp;quot;timetk&amp;quot;)
+#install.packages(&amp;quot;plyr&amp;quot;)
+#install.packages(&amp;quot;knitr&amp;quot;)
+#install.packages(&amp;quot;dplyr&amp;quot;)
+#install.packages(&amp;quot;quantmod&amp;quot;)
+#install.packages(&amp;quot;BatchGetSymbols&amp;quot;)
+#install.packages(&amp;quot;tsbox&amp;quot;)
+#install.packages(&amp;quot;lubridate&amp;quot;)
+
+library(&amp;quot;tidyquant&amp;quot;)
+library(&amp;quot;timetk&amp;quot;)
+library(&amp;quot;ggplot2&amp;quot;)
+library(&amp;quot;plyr&amp;quot;)
+library(&amp;quot;knitr&amp;quot;)
+library(&amp;quot;dplyr&amp;quot;)
+library(&amp;quot;quantmod&amp;quot;)
+library(&amp;quot;BatchGetSymbols&amp;quot;)
+library(&amp;quot;tsbox&amp;quot;)
+library(&amp;quot;lubridate&amp;quot;)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h2 id=&#34;downloading-and-plotting-daily-return-data&#34;&gt;Downloading and Plotting Daily Return Data&lt;/h2&gt;
+&lt;pre&gt;&lt;code class=&#34;language-r&#34;&gt;#Data is downloaded using get_symbols function from quantmod
+RSP &amp;lt;- getSymbols(&amp;quot;RSP&amp;quot;, src = &amp;quot;yahoo&amp;quot;, from = &#39;2003-04-30&#39;, to = &amp;quot;2020-07-07&amp;quot;, auto.assign = FALSE)
+
+RSP_Daily_Return &amp;lt;- dailyReturn(RSP)
+
+#Daily Stock Prices are Plotted
+RSP_Daily_Return %&amp;gt;%
+  ggplot(aes(x = index(RSP_Daily_Return), y = daily.returns)) +
+  geom_line(size=0.5, color=&amp;quot;steel blue&amp;quot;) +
+  ggtitle(&amp;quot;Guggenheim Invest S&amp;amp;P 500 Pure Value ETF since 2003&amp;quot;) +
+  scale_x_date(date_breaks = &amp;quot;years&amp;quot;, date_labels = &amp;quot;%Y&amp;quot;) +
+  labs(x = &amp;quot;Date&amp;quot;, y = &amp;quot;Adjusted Price&amp;quot;)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;img src=&#34;/post/2020-07-15-stock-return-and-risk-calculations.en_files/figure-html/Download and View Stock Prices-1.png&#34; width=&#34;672&#34; /&gt;&lt;/p&gt;
+&lt;p&gt;[ Graph of Daily Returns is difficult to interpret, but we see both extreme highs and lows during the 2008-2009 financial crisis as well as the highs and lows in 2020 during the COVID pandemic]&lt;/p&gt;
+&lt;h2 id=&#34;viewing-and-plotting-monthly-returns&#34;&gt;Viewing and Plotting Monthly Returns&lt;/h2&gt;
+&lt;pre&gt;&lt;code class=&#34;language-r&#34;&gt;#Share Price Data is already downloaded using the get_symbols function from quantmod.  Quantmod makes return calculations easy with monthlyReturn().
+RSP_Monthly_Return &amp;lt;- monthlyReturn(RSP)
+
+#Viewing data before analysis
+head(RSP_Monthly_Return, n=10)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##            monthly.returns
+## 2003-05-30     0.109405980
+## 2003-06-30     0.008656778
+## 2003-07-31     0.023535694
+## 2003-08-29     0.043136238
+## 2003-09-30    -0.019723212
+## 2003-10-31     0.069236656
+## 2003-11-28     0.021109961
+## 2003-12-31     0.048780522
+## 2004-01-30     0.023698842
+## 2004-02-27     0.019039376
+&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code class=&#34;language-r&#34;&gt;#Plotting Monthly Return Data. 
+RSP_Monthly_Return %&amp;gt;%
+  ggplot(aes(x = index(RSP_Monthly_Return), y = monthly.returns)) +
+  geom_line(size=0.5, color=&amp;quot;orange&amp;quot;) +
+  ggtitle(&amp;quot;Guggenheim Invest S&amp;amp;P 500 Pure Value ETF Daily Return since 2003&amp;quot;) +
+  labs(x = &amp;quot;Date&amp;quot;, y = &amp;quot;Monthly Return&amp;quot;)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;img src=&#34;/post/2020-07-15-stock-return-and-risk-calculations.en_files/figure-html/unnamed-chunk-1-1.png&#34; width=&#34;672&#34; /&gt;&lt;/p&gt;
+&lt;p&gt;[The line graph for the monthly returns is easier to interpret than the daily return data.  It appears monthly returns have been cyclical with extreme lows between the years 2008-2009 and the year 2020.  Again these lows are due to both the 2008 financial crisis and the COVID pandemic respectively]&lt;/p&gt;
+&lt;h2 id=&#34;calculating-and-plotting-annual-returns&#34;&gt;Calculating and Plotting Annual Returns&lt;/h2&gt;
+&lt;pre&gt;&lt;code class=&#34;language-r&#34;&gt;#Deriving Annula Returns. Using the yearlyReturn() function from quantmod
+RSP_Yearly_Return &amp;lt;- yearlyReturn(RSP)
+
+#Viewing the data
+head(RSP_Yearly_Return)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##            yearly.returns
+## 2003-12-31    0.341089069
+## 2004-12-31    0.152897812
+## 2005-12-30    0.062563958
+## 2006-12-29    0.141204177
+## 2007-12-31   -0.003379806
+## 2008-12-31   -0.410767295
+&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code class=&#34;language-r&#34;&gt;#Plotting Annual Returns with a Line Graph.
+RSP_Yearly_Return %&amp;gt;%
+  ggplot(aes(x = index(RSP_Yearly_Return), y = yearly.returns)) +
+  geom_line(size=0.5, color=&amp;quot;orange&amp;quot;) +
+  ggtitle(&amp;quot;Guggenheim Invest S&amp;amp;P 500 Pure Value ETF Daily Return since 2003&amp;quot;) +
+  labs(x = &amp;quot;Date&amp;quot;, y = &amp;quot;Annual Return&amp;quot;)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;img src=&#34;/post/2020-07-15-stock-return-and-risk-calculations.en_files/figure-html/unnamed-chunk-2-1.png&#34; width=&#34;672&#34; /&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-r&#34;&gt;#Plotting Annual Returns with Bar Graph
+RSP_Yearly_Return %&amp;gt;%
+  ggplot(aes(x = index(RSP_Yearly_Return), y = yearly.returns)) +
+  geom_bar(stat=&amp;quot;identity&amp;quot;, color=&amp;quot;orange&amp;quot;) +  #stat=identity means bar represents value where as stat=bin would be equal to the number of cases which is not applicable in this case.
+  ggtitle(&amp;quot;Guggenheim Invest S&amp;amp;P 500 Pure Value ETF Daily Return since 2003&amp;quot;) +
+  labs(x = &amp;quot;Date&amp;quot;, y = &amp;quot;Annual Return&amp;quot;) 
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;img src=&#34;/post/2020-07-15-stock-return-and-risk-calculations.en_files/figure-html/unnamed-chunk-2-2.png&#34; width=&#34;672&#34; /&gt;&lt;/p&gt;
+&lt;p&gt;[Above are a line graph and a bar graph for RSP&amp;rsquo;s annual return data.  The line graph appears to exhibit quite a bit of fluctuations with more extereme values during the financial crisis of 2008 and 2020 COVID crisis.  For this type of analysis, the bar graph makes interpretation easier than the line graph. It is clear, both the magnitude as well as when such flucations in annual returns occurred]&lt;/p&gt;
+&lt;h2 id=&#34;cumulative-daily-return-for-rsp&#34;&gt;Cumulative Daily Return for RSP&lt;/h2&gt;
+&lt;pre&gt;&lt;code class=&#34;language-r&#34;&gt;#Convert RSP_Daily_Return from an XTS or time series to a data frame so that we can mutate
+RSP_Daily_Return &amp;lt;-  as.data.frame(RSP_Daily_Return)
+
+#Converting the daily return variable into a numeric data type
+daily.return &amp;lt;- as.numeric(RSP_Daily_Return$daily.returns)
+
+#What if I wanted to know what the cumulative return for RSP was since 2003
+RSP_Cumulative_Return &amp;lt;- as.data.frame(RSP_Daily_Return) %&amp;gt;%
+            mutate(creturn = cumprod(1 + daily.returns)-1)  #(1 + r) * (1 + r)...
+
+#Index functions converts the ref.date variable from an xts to a date variable.
+RSP_Cumulative_Return$dates &amp;lt;- index(RSP_Daily_Return)
+
+#1$ in 2003 would be around $4.7 today
+RSP_Cumulative_Return %&amp;gt;%
+  ggplot(aes(x = dates, y = creturn)) +
+  geom_line(size=0.5, color=&amp;quot;orange&amp;quot;) +
+  ggtitle(&amp;quot;Guggenheim Invest S&amp;amp;P 500 Pure Value ETF Daily Return since 2003&amp;quot;) +
+  labs(x = &amp;quot;Date&amp;quot;, y = &amp;quot;Cumulative Daily Return&amp;quot;)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;img src=&#34;/post/2020-07-15-stock-return-and-risk-calculations.en_files/figure-html/unnamed-chunk-3-1.png&#34; width=&#34;672&#34; /&gt;&lt;/p&gt;
+&lt;p&gt;[$1 in 2003 would be around $3.5 today. ]&lt;/p&gt;
+&lt;h2 id=&#34;downloading-and-plotting-data-for-multiple-stocks&#34;&gt;Downloading and Plotting Data for Multiple Stocks&lt;/h2&gt;
+&lt;pre&gt;&lt;code class=&#34;language-r&#34;&gt;#the ticker symbols for multiple stock are stored in the tickers variable
+tickers &amp;lt;- c(&amp;quot;RSP&amp;quot;, &amp;quot;DIA&amp;quot;, &amp;quot;AAPL&amp;quot;, &amp;quot;DIS&amp;quot;, &amp;quot;GOOG&amp;quot;, &amp;quot;BAR&amp;quot;, &amp;quot;UAL&amp;quot;) 
+
+#Pricing and Return Data is downloaded through the BatchGetSymbols function.  Based on research I did online, this function appears to be the most efficient means of downloading stock data for muliple different stocks
+multiple_stocks &amp;lt;- BatchGetSymbols(tickers, 
+                                   first.date = &#39;2007-01-01&#39;, 
+                                   last.date = &amp;quot;2020-06-30&amp;quot;,
+                                   freq.data = &amp;quot;yearly&amp;quot;, # calculates annual return data
+                                   type.return = &amp;quot;arit&amp;quot;,
+                                   do.complete.data = FALSE, 
+                                   do.fill.missing.prices = TRUE, 
+                                   do.cache = TRUE,
+                                   do.parallel = FALSE, be.quiet = FALSE)
+                                   
+
+#Its important to always look at your data before you analyze
+head(multiple_stocks$df.tickers)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## # A tibble: 6 x 10
+##   ticker ref.date    volume price.open price.high price.low price.close
+##   &amp;lt;chr&amp;gt;  &amp;lt;date&amp;gt;       &amp;lt;dbl&amp;gt;      &amp;lt;dbl&amp;gt;      &amp;lt;dbl&amp;gt;     &amp;lt;dbl&amp;gt;       &amp;lt;dbl&amp;gt;
+## 1 AAPL   2007-01-03 6.17e10       12.3       28.5      11.9        12.0
+## 2 AAPL   2008-01-02 7.15e10       28.5       27.8      11.5        27.8
+## 3 AAPL   2009-01-02 3.58e10       12.3       30.2      11.2        13.0
+## 4 AAPL   2010-01-04 3.78e10       30.5       46.5      27.4        30.6
+## 5 AAPL   2011-01-03 3.10e10       46.5       60.3      45.0        47.1
+## 6 AAPL   2012-01-03 3.30e10       58.5      100.       58.7        58.7
+## # … with 3 more variables: price.adjusted &amp;lt;dbl&amp;gt;, ret.adjusted.prices &amp;lt;dbl&amp;gt;,
+## #   ret.closing.prices &amp;lt;dbl&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code class=&#34;language-r&#34;&gt;ggplot(multiple_stocks$df.tickers, aes(x = ref.date, y = price.adjusted, color = ticker)) +
+  geom_line() +
+  ggtitle(&amp;quot;Price chart for multiple stocks&amp;quot;)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;img src=&#34;/post/2020-07-15-stock-return-and-risk-calculations.en_files/figure-html/unnamed-chunk-4-1.png&#34; width=&#34;672&#34; /&gt;&lt;/p&gt;
+&lt;p&gt;[This line graph is the pricing data for multiple stocks.  Google has the highest stock price per share with around $1500 per share today.  The next highest stock price today is Apple, with DIA, an Dow Jones ETF following.]&lt;/p&gt;
+&lt;h2 id=&#34;plotting-daily-returns-for-multiple-stocks&#34;&gt;Plotting Daily Returns for Multiple Stocks&lt;/h2&gt;
+&lt;pre&gt;&lt;code class=&#34;language-r&#34;&gt;#Would like to investigate the cumulative return of several stocks simultaneosly
+multiple_stocks_df &amp;lt;- data.frame(multiple_stocks$df.tickers)
+
+head(multiple_stocks_df)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##   ticker   ref.date      volume price.open price.high price.low price.close
+## 1   AAPL 2007-01-03 61748996400   12.32714   28.54714  11.89571    11.97143
+## 2   AAPL 2008-01-02 71495301500   28.46714   27.84714  11.49857    27.83429
+## 3   AAPL 2009-01-02 35813421700   12.26857   30.23428  11.17143    12.96429
+## 4   AAPL 2010-01-04 37756231800   30.49000   46.49572  27.43571    30.57286
+## 5   AAPL 2011-01-03 31014834900   46.52000   60.32000  45.04572    47.08143
+## 6   AAPL 2012-01-03 32991051100   58.48571  100.30000  58.74714    58.74714
+##   price.adjusted ret.adjusted.prices ret.closing.prices
+## 1       10.36364                  NA                 NA
+## 2       24.09607           1.3250593          1.3250596
+## 3       11.22315          -0.5342334         -0.5342332
+## 4       26.46683           1.3582365          1.3582369
+## 5       40.75828           0.5399755          0.5399748
+## 6       50.85724           0.2477768          0.2477774
+&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code class=&#34;language-r&#34;&gt;#Looking at data before analysis
+multiple_stocks_df %&amp;gt;%
+  ggplot(aes(x = ref.date, y = ret.adjusted.prices)) +
+  geom_line( aes(colour = ticker))  +
+  ggtitle(&amp;quot;Multiple Stocks Annual Arithmetic Return&amp;quot;) +
+  labs(x = &amp;quot;Date&amp;quot;, y = &amp;quot;Annual Return&amp;quot;)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## Warning: Removed 6 row(s) containing missing values (geom_path).
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;img src=&#34;/post/2020-07-15-stock-return-and-risk-calculations.en_files/figure-html/unnamed-chunk-5-1.png&#34; width=&#34;672&#34; /&gt;
+[Daily Return data is hard to interpret.]&lt;/p&gt;
+&lt;h2 id=&#34;cumulative-daily-stock-return-for-multiple-stocks&#34;&gt;Cumulative Daily Stock Return for Multiple Stocks&lt;/h2&gt;
+&lt;pre&gt;&lt;code class=&#34;language-r&#34;&gt;#Cumulative Stock Return for Multiple Stocks
+multiple_stocks_daily &amp;lt;- BatchGetSymbols(tickers, 
+                                   first.date = &#39;2007-01-01&#39;, 
+                                   last.date = &amp;quot;2020-06-30&amp;quot;,
+                                   freq.data = &amp;quot;daily&amp;quot;,
+                                   type.return = &amp;quot;arit&amp;quot;)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## 
+## Running BatchGetSymbols for:
+##    tickers =RSP, DIA, AAPL, DIS, GOOG, BAR, UAL
+##    Downloading data for benchmark ticker
+## ^GSPC | yahoo (1|1) | Found cache file
+## RSP | yahoo (1|7) | Found cache file - Got 100% of valid prices | Well done!
+## DIA | yahoo (2|7) | Found cache file - Got 100% of valid prices | Feliz que nem lambari de sanga!
+## AAPL | yahoo (3|7) | Found cache file - Got 100% of valid prices | Well done!
+## DIS | yahoo (4|7) | Found cache file - Got 100% of valid prices | Youre doing good!
+## GOOG | yahoo (5|7) | Found cache file - Got 100% of valid prices | Got it!
+## BAR | yahoo (6|7) | Found cache file - Got 20.9% of valid prices | OUT: not enough data (thresh.bad.data = 75.0%)
+## UAL | yahoo (7|7) | Found cache file - Got 100% of valid prices | Got it!
+&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code class=&#34;language-r&#34;&gt;#converting the df.tickers data package into a data frame
+multiple_stocks_daily_ret_df &amp;lt;- data.frame(multiple_stocks_daily$df.tickers)
+
+#Data that is missing or categorized as NA is replaced with a 0 to make analysis easier
+multiple_stocks_daily_ret_df[is.na(multiple_stocks_daily_ret_df)] &amp;lt;- 0
+
+#Need to check to see if NAs are replaced with 0s
+head(multiple_stocks_daily_ret_df)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##   price.open price.high price.low price.close volume price.adjusted   ref.date
+## 1      47.58      47.79     47.04       47.32 458900       38.05593 2007-01-03
+## 2      47.27      47.48     47.04       47.39 323100       38.11223 2007-01-04
+## 3      47.23      47.23     46.94       47.07 291500       37.85487 2007-01-05
+## 4      47.01      47.23     46.89       47.17 279000       37.93529 2007-01-08
+## 5      47.25      47.30     46.97       47.23 354500       37.98356 2007-01-09
+## 6      47.10      47.42     46.97       47.37 249600       38.09615 2007-01-10
+##   ticker ret.adjusted.prices ret.closing.prices
+## 1    RSP         0.000000000        0.000000000
+## 2    RSP         0.001479139        0.001479269
+## 3    RSP        -0.006752453       -0.006752458
+## 4    RSP         0.002124350        0.002124453
+## 5    RSP         0.001272272        0.001272037
+## 6    RSP         0.002964204        0.002964196
+&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code class=&#34;language-r&#34;&gt;#Calculating the cumulative daily return using the cumprod function
+cumulative_multiple_stocks_daily &amp;lt;- multiple_stocks_daily_ret_df %&amp;gt;%
+            group_by(ticker) %&amp;gt;%
+            mutate(creturn = cumprod(1 + ret.adjusted.prices)-1) #(1 + r) * (1 + r)...
+      
+#Looking at data before plotting.  Want to check to see if the cumulative product function worked correctly.
+head(cumulative_multiple_stocks_daily)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## # A tibble: 6 x 11
+## # Groups:   ticker [1]
+##   price.open price.high price.low price.close volume price.adjusted ref.date  
+##        &amp;lt;dbl&amp;gt;      &amp;lt;dbl&amp;gt;     &amp;lt;dbl&amp;gt;       &amp;lt;dbl&amp;gt;  &amp;lt;dbl&amp;gt;          &amp;lt;dbl&amp;gt; &amp;lt;date&amp;gt;    
+## 1       47.6       47.8      47.0        47.3 458900           38.1 2007-01-03
+## 2       47.3       47.5      47.0        47.4 323100           38.1 2007-01-04
+## 3       47.2       47.2      46.9        47.1 291500           37.9 2007-01-05
+## 4       47.0       47.2      46.9        47.2 279000           37.9 2007-01-08
+## 5       47.2       47.3      47.0        47.2 354500           38.0 2007-01-09
+## 6       47.1       47.4      47.0        47.4 249600           38.1 2007-01-10
+## # … with 4 more variables: ticker &amp;lt;chr&amp;gt;, ret.adjusted.prices &amp;lt;dbl&amp;gt;,
+## #   ret.closing.prices &amp;lt;dbl&amp;gt;, creturn &amp;lt;dbl&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code class=&#34;language-r&#34;&gt;#See Multiple Stock Cumulative Return
+cumulative_multiple_stocks_daily %&amp;gt;%
+  group_by(ticker) %&amp;gt;%  # Need to group multiple stocks
+  ggplot(aes(x = ref.date, y = creturn, color = ticker)) +
+  geom_line() +
+  labs(x = &amp;quot;Date&amp;quot;, y = &amp;quot;Cumulative Returns&amp;quot;) +
+  ggtitle(&amp;quot;Cumulative returns for Multiple Stocks Since 2007&amp;quot;) +
+  scale_color_brewer(type = &#39;qual&#39;) + 
+  theme_dark()
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;img src=&#34;/post/2020-07-15-stock-return-and-risk-calculations.en_files/figure-html/unnamed-chunk-6-1.png&#34; width=&#34;672&#34; /&gt;&lt;/p&gt;
+&lt;p&gt;[Apple has the highest cumulative return compared to all the other stocks in the group. $1 of Apple at the beginning of 2007 is equal to $35 today]&lt;/p&gt;
+&lt;h2 id=&#34;calculating-the-standard-deviation-for-multiple-stock&#34;&gt;Calculating the Standard Deviation for Multiple Stock&lt;/h2&gt;
+&lt;pre&gt;&lt;code class=&#34;language-r&#34;&gt;#Using the standard deviation function from R to find the SD of multiple stocks.  The SD is multiplied by the square root of 252 to annualized the data.  252 is the average number of trading days in a year.
+Multiple_Stocks_SD_Table &amp;lt;-
+cumulative_multiple_stocks_daily %&amp;gt;% 
+  group_by(ticker) %&amp;gt;% 
+  summarize(standard_deviation = round(StdDev(ret.adjusted.prices) * sqrt(252), digits=4) * 100)
+
+#Looking at the data before plotting
+head(Multiple_Stocks_SD_Table)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## # A tibble: 6 x 2
+##   ticker standard_deviation[,1]
+##   &amp;lt;chr&amp;gt;                   &amp;lt;dbl&amp;gt;
+## 1 AAPL                     32.2
+## 2 DIA                      20.2
+## 3 DIS                      28.0
+## 4 GOOG                     29.4
+## 5 RSP                      22.7
+## 6 UAL                      69.6
+&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code class=&#34;language-r&#34;&gt;#Using Bar Graph to plot Mean Annual Return for Multiple Stock in Descending Order 
+ggplot(data = Multiple_Stocks_SD_Table, aes(x = reorder(ticker, -standard_deviation), y= standard_deviation)) + 
+geom_bar(stat=&amp;quot;identity&amp;quot;, fill= &amp;quot;blue&amp;quot;, colour=&amp;quot;orange&amp;quot;) + 
+geom_text(aes(label = paste(standard_deviation, &amp;quot;%&amp;quot;, sep = &amp;quot;&amp;quot;)), nudge_y = 2) + 
+ggtitle(&amp;quot;Multiple Stocks Mean Annual Arithmetic Returns Since 2007&amp;quot;) +
+labs(x = &amp;quot;Company&amp;quot;, y = &amp;quot;Mean Annual Return&amp;quot;)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;img src=&#34;/post/2020-07-15-stock-return-and-risk-calculations.en_files/figure-html/unnamed-chunk-7-1.png&#34; width=&#34;672&#34; /&gt;&lt;/p&gt;
+&lt;p&gt;[Stocks are arranged in order of descending riskiness.  United Airlines has the highest level of risk with an SD of 69.6%, followed by Apple, Google, etc.  Not suprising the RSP and DIA ETFs have the lowest risk out of this group of stocks given they represent the overall market]&lt;/p&gt;
+</description>
+    </item>
     
     <item>
       <title>Data Types</title>
