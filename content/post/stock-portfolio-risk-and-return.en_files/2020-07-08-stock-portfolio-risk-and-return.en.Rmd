@@ -1,7 +1,7 @@
 ---
-title: "Stock Portfolio Risk and Return"
-author: "Colin James"
-date: '2020-07-08'
+title: Stock Portfolio Risk and Return
+author: Colin James
+date: '2020-07-15'
 output:
   pdf_document: default
   html_document:
@@ -12,13 +12,7 @@ image:
   focal_point: ''
   preview_only: no
 lastmod: '2020-07-08T17:49:20-04:00'
-categories: []
-projects: []
 slug: stock-portfolio-risk-and-return
-subtitle: ''
-summary: ''
-tags: []
-authors: []
 ---
 
 ### This post will center on simple stock portfolio risk and return analysis using R

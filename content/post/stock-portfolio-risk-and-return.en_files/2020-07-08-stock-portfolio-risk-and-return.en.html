@@ -1,7 +1,7 @@
 ---
-title: "Stock Portfolio Risk and Return"
-author: "Colin James"
-date: '2020-07-08'
+title: Stock Portfolio Risk and Return
+author: Colin James
+date: '2020-07-15'
 output:
   pdf_document: default
   html_document:
@@ -12,13 +12,7 @@ image:
   focal_point: ''
   preview_only: no
 lastmod: '2020-07-08T17:49:20-04:00'
-categories: []
-projects: []
 slug: stock-portfolio-risk-and-return
-subtitle: ''
-summary: ''
-tags: []
-authors: []
 ---
 
 
@@ -226,13 +220,13 @@ multiple_stocks_daily &lt;- BatchGetSymbols(tickers,
 ##    tickers =RSP, DIA, AAPL, DIS, GOOG, BAR, UAL
 ##    Downloading data for benchmark ticker
 ## ^GSPC | yahoo (1|1) | Found cache file
-## RSP | yahoo (1|7) | Found cache file - Got 100% of valid prices | Nice!
-## DIA | yahoo (2|7) | Found cache file - Got 100% of valid prices | Youre doing good!
-## AAPL | yahoo (3|7) | Found cache file - Got 100% of valid prices | Nice!
-## DIS | yahoo (4|7) | Found cache file - Got 100% of valid prices | Looking good!
-## GOOG | yahoo (5|7) | Found cache file - Got 100% of valid prices | OK!
+## RSP | yahoo (1|7) | Found cache file - Got 100% of valid prices | Looking good!
+## DIA | yahoo (2|7) | Found cache file - Got 100% of valid prices | Good stuff!
+## AAPL | yahoo (3|7) | Found cache file - Got 100% of valid prices | Feels good!
+## DIS | yahoo (4|7) | Found cache file - Got 100% of valid prices | You got it!
+## GOOG | yahoo (5|7) | Found cache file - Got 100% of valid prices | Looking good!
 ## BAR | yahoo (6|7) | Found cache file - Got 20.9% of valid prices | OUT: not enough data (thresh.bad.data = 75.0%)
-## UAL | yahoo (7|7) | Found cache file - Got 100% of valid prices | OK!</code></pre>
+## UAL | yahoo (7|7) | Found cache file - Got 100% of valid prices | Youre doing good!</code></pre>
 <pre class="r"><code>#converting the df.tickers data package into a data frame
 multiple_stocks_daily_ret_df &lt;- data.frame(multiple_stocks_daily$df.tickers)
 
