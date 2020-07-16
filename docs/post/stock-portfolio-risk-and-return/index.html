@@ -27,7 +27,7 @@
   
     
   
-  <meta name="description" content="#install.packages(&quot;tidyquant&quot;) #install.packages(&quot;timetk&quot;) #install.packages(&quot;plyr&quot;) library(&quot;tidyquant&quot;) library(&quot;timetk&quot;) library(&quot;ggplot2&quot;) library(&quot;plyr&quot;) #Data is downloaded using tq_get function from tidyquant RSP &lt;- tq_get(&quot;RSP&quot;, from = &#39;2003-04-30&#39;, to = &quot;2020-07-07&quot;, get = &quot;stock.prices&quot;) #Stock Prices are Plotted RSP %&gt;% ggplot(aes(x = date, y = adjusted)) &#43; geom_line(size=0.">
+  <meta name="description" content="In This Blog we are going to do some simple stock portfolio risk and return analysis using R #install.packages(&quot;tidyquant&quot;) #install.packages(&quot;timetk&quot;) #install.packages(&quot;plyr&quot;) library(&quot;tidyquant&quot;) library(&quot;timetk&quot;) library(&quot;ggplot2&quot;) library(&quot;plyr&quot;) #Data is downloaded using tq_get function from tidyquant RSP &lt;- tq_get(&quot;RSP&quot;, from = &#39;2003-04-30&#39;, to = &quot;2020-07-07&quot;, get = &quot;stock.">
 
   
   <link rel="alternate" hreflang="en-us" href="/post/stock-portfolio-risk-and-return/">
@@ -235,7 +235,7 @@
   <meta property="og:site_name" content="Academic">
   <meta property="og:url" content="/post/stock-portfolio-risk-and-return/">
   <meta property="og:title" content="Stock Portfolio Risk and Return | Academic">
-  <meta property="og:description" content="#install.packages(&quot;tidyquant&quot;) #install.packages(&quot;timetk&quot;) #install.packages(&quot;plyr&quot;) library(&quot;tidyquant&quot;) library(&quot;timetk&quot;) library(&quot;ggplot2&quot;) library(&quot;plyr&quot;) #Data is downloaded using tq_get function from tidyquant RSP &lt;- tq_get(&quot;RSP&quot;, from = &#39;2003-04-30&#39;, to = &quot;2020-07-07&quot;, get = &quot;stock.prices&quot;) #Stock Prices are Plotted RSP %&gt;% ggplot(aes(x = date, y = adjusted)) &#43; geom_line(size=0."><meta property="og:image" content="/images/icon_hu0b7a4cb9992c9ac0e91bd28ffd38dd00_9727_512x512_fill_lanczos_center_2.png">
+  <meta property="og:description" content="In This Blog we are going to do some simple stock portfolio risk and return analysis using R #install.packages(&quot;tidyquant&quot;) #install.packages(&quot;timetk&quot;) #install.packages(&quot;plyr&quot;) library(&quot;tidyquant&quot;) library(&quot;timetk&quot;) library(&quot;ggplot2&quot;) library(&quot;plyr&quot;) #Data is downloaded using tq_get function from tidyquant RSP &lt;- tq_get(&quot;RSP&quot;, from = &#39;2003-04-30&#39;, to = &quot;2020-07-07&quot;, get = &quot;stock."><meta property="og:image" content="/images/icon_hu0b7a4cb9992c9ac0e91bd28ffd38dd00_9727_512x512_fill_lanczos_center_2.png">
   <meta property="twitter:image" content="/images/icon_hu0b7a4cb9992c9ac0e91bd28ffd38dd00_9727_512x512_fill_lanczos_center_2.png"><meta property="og:locale" content="en-us">
   
     
@@ -285,7 +285,7 @@
       "url": "/images/icon_hu0b7a4cb9992c9ac0e91bd28ffd38dd00_9727_192x192_fill_lanczos_center_2.png"
     }
   },
-  "description": "#install.packages(\u0026quot;tidyquant\u0026quot;) #install.packages(\u0026quot;timetk\u0026quot;) #install.packages(\u0026quot;plyr\u0026quot;) library(\u0026quot;tidyquant\u0026quot;) library(\u0026quot;timetk\u0026quot;) library(\u0026quot;ggplot2\u0026quot;) library(\u0026quot;plyr\u0026quot;) #Data is downloaded using tq_get function from tidyquant RSP \u0026lt;- tq_get(\u0026quot;RSP\u0026quot;, from = \u0026#39;2003-04-30\u0026#39;, to = \u0026quot;2020-07-07\u0026quot;, get = \u0026quot;stock.prices\u0026quot;) #Stock Prices are Plotted RSP %\u0026gt;% ggplot(aes(x = date, y = adjusted)) + geom_line(size=0."
+  "description": "In This Blog we are going to do some simple stock portfolio risk and return analysis using R #install.packages(\u0026quot;tidyquant\u0026quot;) #install.packages(\u0026quot;timetk\u0026quot;) #install.packages(\u0026quot;plyr\u0026quot;) library(\u0026quot;tidyquant\u0026quot;) library(\u0026quot;timetk\u0026quot;) library(\u0026quot;ggplot2\u0026quot;) library(\u0026quot;plyr\u0026quot;) #Data is downloaded using tq_get function from tidyquant RSP \u0026lt;- tq_get(\u0026quot;RSP\u0026quot;, from = \u0026#39;2003-04-30\u0026#39;, to = \u0026quot;2020-07-07\u0026quot;, get = \u0026quot;stock."
 }
 </script>
 
@@ -670,6 +670,8 @@
       
 
 
+<div id="in-this-blog-we-are-going-to-do-some-simple-stock-portfolio-risk-and-return-analysis-using-r" class="section level3">
+<h3>In This Blog we are going to do some simple stock portfolio risk and return analysis using R</h3>
 <pre class="r"><code>#install.packages(&quot;tidyquant&quot;)
 #install.packages(&quot;timetk&quot;)
 #install.packages(&quot;plyr&quot;)
@@ -689,6 +691,7 @@ RSP %&gt;%
   scale_x_date(date_breaks = &quot;years&quot;, date_labels = &quot;%Y&quot;) +
   labs(x = &quot;Date&quot;, y = &quot;Adjusted Price&quot;)</code></pre>
 <p><img src="/post/2020-07-08-stock-portfolio-risk-and-return.en_files/figure-html/Download%20and%20View%20Stock%20Prices-1.png" width="672" /></p>
+</div>
 
     </div>
 

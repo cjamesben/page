@@ -21,28 +21,229 @@ tags: []
 authors: []
 ---
 
+### This post will center on simple stock portfolio risk and return analysis using R
+
+## Install all necessary packages.
 ```{r Installing Necessary Packages, message=FALSE, warning=FALSE}
 #install.packages("tidyquant")
 #install.packages("timetk")
 #install.packages("plyr")
+#install.packages("knitr")
+#install.packages("dplyr")
+#install.packages("quantmod")
+#install.packages("BatchGetSymbols")
+#install.packages("tsbox")
+#install.packages("lubridate")
 
 library("tidyquant")
 library("timetk")
 library("ggplot2")
 library("plyr")
+library("knitr")
+library("dplyr")
+library("quantmod")
+library("BatchGetSymbols")
+library("tsbox")
+library("lubridate")
+
 
 ```
 
+## Downloading and Plotting Daily Return Data
 ```{r Download and View Stock Prices, message=FALSE, warning=FALSE}
-#Data is downloaded using tq_get function from tidyquant
-RSP <- tq_get("RSP", from = '2003-04-30', to = "2020-07-07", get = "stock.prices")
+#Data is downloaded using get_symbols function from quantmod
+RSP <- getSymbols("RSP", src = "yahoo", from = '2003-04-30', to = "2020-07-07", auto.assign = FALSE)
 
-#Stock Prices are Plotted
-RSP %>%
-  ggplot(aes(x = date, y = adjusted)) +
+RSP_Daily_Return <- dailyReturn(RSP)
+
+#Daily Stock Prices are Plotted
+RSP_Daily_Return %>%
+  ggplot(aes(x = index(RSP_Daily_Return), y = daily.returns)) +
   geom_line(size=0.5, color="steel blue") +
   ggtitle("Guggenheim Invest S&P 500 Pure Value ETF since 2003") +
   scale_x_date(date_breaks = "years", date_labels = "%Y") +
   labs(x = "Date", y = "Adjusted Price")
 
 ```
+
+[ Graph of Daily Returns is difficult to interpret, but we see both extreme highs and lows during the 2008-2009 financial crisis as well as the highs and lows in 2020 during the COVID pandemic]
+
+
+## Viewing and Plotting Monthly Returns
+
+```{r, message=FALSE, warning=FALSE, error=FALSE}
+#Share Price Data is already downloaded using the get_symbols function from quantmod.  Quantmod makes return calculations easy with monthlyReturn().
+RSP_Monthly_Return <- monthlyReturn(RSP)
+
+#Viewing data before analysis
+head(RSP_Monthly_Return, n=10)
+
+#Plotting Monthly Return Data. 
+RSP_Monthly_Return %>%
+  ggplot(aes(x = index(RSP_Monthly_Return), y = monthly.returns)) +
+  geom_line(size=0.5, color="orange") +
+  ggtitle("Guggenheim Invest S&P 500 Pure Value ETF Daily Return since 2003") +
+  labs(x = "Date", y = "Monthly Return")
+```
+
+[The line graph for the monthly returns is easier to interpret than the daily return data.  It appears monthly returns have been cyclical with extreme lows between the years 2008-2009 and the year 2020.  Again these lows are due to both the 2008 financial crisis and the COVID pandemic respectively]
+
+## Calculating and Plotting Annual Returns
+```{r}
+#Deriving Annula Returns. Using the yearlyReturn() function from quantmod
+RSP_Yearly_Return <- yearlyReturn(RSP)
+
+#Viewing the data
+head(RSP_Yearly_Return)
+
+#Plotting Annual Returns with a Line Graph.
+RSP_Yearly_Return %>%
+  ggplot(aes(x = index(RSP_Yearly_Return), y = yearly.returns)) +
+  geom_line(size=0.5, color="orange") +
+  ggtitle("Guggenheim Invest S&P 500 Pure Value ETF Daily Return since 2003") +
+  labs(x = "Date", y = "Annual Return")
+
+#Plotting Annual Returns with Bar Graph
+RSP_Yearly_Return %>%
+  ggplot(aes(x = index(RSP_Yearly_Return), y = yearly.returns)) +
+  geom_bar(stat="identity", color="orange") +  #stat=identity means bar represents value where as stat=bin would be equal to the number of cases which is not applicable in this case.
+  ggtitle("Guggenheim Invest S&P 500 Pure Value ETF Daily Return since 2003") +
+  labs(x = "Date", y = "Annual Return") 
+```
+
+[Above are a line graph and a bar graph for RSP's annual return data.  The line graph appears to exhibit quite a bit of fluctuations with more extereme values during the financial crisis of 2008 and 2020 COVID crisis.  For this type of analysis, the bar graph makes interpretation easier than the line graph. It is clear, both the magnitude as well as when such flucations in annual returns occurred]
+
+
+## Cumulative Daily Return for RSP
+```{r}
+#Convert RSP_Daily_Return from an XTS or time series to a data frame so that we can mutate
+RSP_Daily_Return <-  as.data.frame(RSP_Daily_Return)
+
+#Converting the daily return variable into a numeric data type
+daily.return <- as.numeric(RSP_Daily_Return$daily.returns)
+
+#What if I wanted to know what the cumulative return for RSP was since 2003
+RSP_Cumulative_Return <- as.data.frame(RSP_Daily_Return) %>%
+            mutate(creturn = cumprod(1 + daily.returns)-1)  #(1 + r) * (1 + r)...
+
+#Index functions converts the ref.date variable from an xts to a date variable.
+RSP_Cumulative_Return$dates <- index(RSP_Daily_Return)
+
+#1$ in 2003 would be around $4.7 today
+RSP_Cumulative_Return %>%
+  ggplot(aes(x = dates, y = creturn)) +
+  geom_line(size=0.5, color="orange") +
+  ggtitle("Guggenheim Invest S&P 500 Pure Value ETF Daily Return since 2003") +
+  labs(x = "Date", y = "Cumulative Daily Return")
+```
+
+[$1 in 2003 would be around $3.5 today. ]
+
+## Downloading and Plotting Data for Multiple Stocks
+```{r, message=FALSE, warning=FALSE, error=FALSE}
+#the ticker symbols for multiple stock are stored in the tickers variable
+tickers <- c("RSP", "DIA", "AAPL", "DIS", "GOOG", "BAR", "UAL") 
+
+#Pricing and Return Data is downloaded through the BatchGetSymbols function.  Based on research I did online, this function appears to be the most efficient means of downloading stock data for muliple different stocks
+multiple_stocks <- BatchGetSymbols(tickers, 
+                                   first.date = '2007-01-01', 
+                                   last.date = "2020-06-30",
+                                   freq.data = "yearly", # calculates annual return data
+                                   type.return = "arit",
+                                   do.complete.data = FALSE, 
+                                   do.fill.missing.prices = TRUE, 
+                                   do.cache = TRUE,
+                                   do.parallel = FALSE, be.quiet = FALSE)
+                                   
+
+#Its important to always look at your data before you analyze
+head(multiple_stocks$df.tickers)
+
+ggplot(multiple_stocks$df.tickers, aes(x = ref.date, y = price.adjusted, color = ticker)) +
+  geom_line() +
+  ggtitle("Price chart for multiple stocks")
+
+```
+
+[This line graph is the pricing data for multiple stocks.  Google has the highest stock price per share with around $1500 per share today.  The next highest stock price today is Apple, with DIA, an Dow Jones ETF following.]
+
+## Plotting Daily Returns for Multiple Stocks
+```{r}
+#Would like to investigate the cumulative return of several stocks simultaneosly
+multiple_stocks_df <- data.frame(multiple_stocks$df.tickers)
+
+head(multiple_stocks_df)
+                     
+#Looking at data before analysis
+multiple_stocks_df %>%
+  ggplot(aes(x = ref.date, y = ret.adjusted.prices)) +
+  geom_line( aes(colour = ticker))  +
+  ggtitle("Multiple Stocks Annual Arithmetic Return") +
+  labs(x = "Date", y = "Annual Return")
+
+```
+[Daily Return data is hard to interpret.]
+
+
+## Cumulative Daily Stock Return for Multiple Stocks
+```{r}
+#Cumulative Stock Return for Multiple Stocks
+multiple_stocks_daily <- BatchGetSymbols(tickers, 
+                                   first.date = '2007-01-01', 
+                                   last.date = "2020-06-30",
+                                   freq.data = "daily",
+                                   type.return = "arit")
+
+#converting the df.tickers data package into a data frame
+multiple_stocks_daily_ret_df <- data.frame(multiple_stocks_daily$df.tickers)
+
+#Data that is missing or categorized as NA is replaced with a 0 to make analysis easier
+multiple_stocks_daily_ret_df[is.na(multiple_stocks_daily_ret_df)] <- 0
+
+#Need to check to see if NAs are replaced with 0s
+head(multiple_stocks_daily_ret_df)
+
+#Calculating the cumulative daily return using the cumprod function
+cumulative_multiple_stocks_daily <- multiple_stocks_daily_ret_df %>%
+            group_by(ticker) %>%
+            mutate(creturn = cumprod(1 + ret.adjusted.prices)-1) #(1 + r) * (1 + r)...
+      
+#Looking at data before plotting.  Want to check to see if the cumulative product function worked correctly.
+head(cumulative_multiple_stocks_daily)
+
+#See Multiple Stock Cumulative Return
+cumulative_multiple_stocks_daily %>%
+  group_by(ticker) %>%  # Need to group multiple stocks
+  ggplot(aes(x = ref.date, y = creturn, color = ticker)) +
+  geom_line() +
+  labs(x = "Date", y = "Cumulative Returns") +
+  ggtitle("Cumulative returns for Multiple Stocks Since 2007") +
+  scale_color_brewer(type = 'qual') + 
+  theme_dark()
+
+```
+
+[Apple has the highest cumulative return compared to all the other stocks in the group. $1 of Apple at the beginning of 2007 is equal to $35 today]
+
+## Calculating the Standard Deviation for Multiple Stock
+```{r, message=FALSE, error=FALSE}
+
+#Using the standard deviation function from R to find the SD of multiple stocks.  The SD is multiplied by the square root of 252 to annualized the data.  252 is the average number of trading days in a year.
+Multiple_Stocks_SD_Table <-
+cumulative_multiple_stocks_daily %>% 
+  group_by(ticker) %>% 
+  summarize(standard_deviation = round(StdDev(ret.adjusted.prices) * sqrt(252), digits=4) * 100)
+
+#Looking at the data before plotting
+head(Multiple_Stocks_SD_Table)
+
+#Using Bar Graph to plot Mean Annual Return for Multiple Stock in Descending Order 
+ggplot(data = Multiple_Stocks_SD_Table, aes(x = reorder(ticker, -standard_deviation), y= standard_deviation)) + 
+geom_bar(stat="identity", fill= "blue", colour="orange") + 
+geom_text(aes(label = paste(standard_deviation, "%", sep = "")), nudge_y = 2) + 
+ggtitle("Multiple Stocks Mean Annual Arithmetic Returns Since 2007") +
+labs(x = "Company", y = "Mean Annual Return")
+
+```
+
+[Stocks are arranged in order of descending riskiness.  United Airlines has the highest level of risk with an SD of 69.6%, followed by Apple, Google, etc.  Not suprising the RSP and DIA ETFs have the lowest risk out of this group of stocks given they represent the overall market]
