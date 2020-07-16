@@ -77,39 +77,6 @@
     </item>
     
     <item>
-      <title>Stock Portfolio Risk and Return</title>
-      <link>/post/stock-portfolio-risk-and-return/</link>
-      <pubDate>Wed, 08 Jul 2020 00:00:00 +0000</pubDate>
-      <guid>/post/stock-portfolio-risk-and-return/</guid>
-      <description>
-
-
-&lt;div id=&#34;in-this-blog-we-are-going-to-do-some-simple-stock-portfolio-risk-and-return-analysis-using-r&#34; class=&#34;section level3&#34;&gt;
-&lt;h3&gt;In This Blog we are going to do some simple stock portfolio risk and return analysis using R&lt;/h3&gt;
-&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;#install.packages(&amp;quot;tidyquant&amp;quot;)
-#install.packages(&amp;quot;timetk&amp;quot;)
-#install.packages(&amp;quot;plyr&amp;quot;)
-
-library(&amp;quot;tidyquant&amp;quot;)
-library(&amp;quot;timetk&amp;quot;)
-library(&amp;quot;ggplot2&amp;quot;)
-library(&amp;quot;plyr&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
-&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;#Data is downloaded using tq_get function from tidyquant
-RSP &amp;lt;- tq_get(&amp;quot;RSP&amp;quot;, from = &amp;#39;2003-04-30&amp;#39;, to = &amp;quot;2020-07-07&amp;quot;, get = &amp;quot;stock.prices&amp;quot;)
-
-#Stock Prices are Plotted
-RSP %&amp;gt;%
-  ggplot(aes(x = date, y = adjusted)) +
-  geom_line(size=0.5, color=&amp;quot;steel blue&amp;quot;) +
-  ggtitle(&amp;quot;Guggenheim Invest S&amp;amp;P 500 Pure Value ETF since 2003&amp;quot;) +
-  scale_x_date(date_breaks = &amp;quot;years&amp;quot;, date_labels = &amp;quot;%Y&amp;quot;) +
-  labs(x = &amp;quot;Date&amp;quot;, y = &amp;quot;Adjusted Price&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;&lt;img src=&#34;/post/2020-07-08-stock-portfolio-risk-and-return.en_files/figure-html/Download%20and%20View%20Stock%20Prices-1.png&#34; width=&#34;672&#34; /&gt;&lt;/p&gt;
-&lt;/div&gt;
-</description>
-    </item>
-    
-    <item>
       <title>Data Types</title>
       <link>/post/data-types/</link>
       <pubDate>Fri, 03 Jul 2020 00:00:00 +0000</pubDate>
