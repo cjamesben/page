@@ -1,20 +1,23 @@
 ---
-title: Time Value of Money
-author: Colin James
+title: "Time Value of Money"
+author: "Colin James"
 date: '2020-07-26'
-slug: time-value-of-money
-categories: []
-tags: []
-subtitle: ''
-summary: ''
-authors: []
-lastmod: '2020-07-26T19:09:20-04:00'
+output:
+  html_document:
+    df_print: paged
 featured: no
 image:
   caption: ''
   focal_point: ''
   preview_only: no
+lastmod: '2020-07-26T19:09:20-04:00'
+categories: []
 projects: []
+slug: time-value-of-money
+subtitle: ''
+summary: ''
+tags: []
+authors: []
 ---
 
 ### Time Value of Money

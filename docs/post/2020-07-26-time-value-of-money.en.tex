@@ -1,149 +1,359 @@
----
-title: "Time Value of Money"
-author: "Colin James"
-date: '2020-07-26'
-output:
-  html_document:
-    df_print: paged
-featured: no
-image:
-  caption: ''
-  focal_point: ''
-  preview_only: no
-lastmod: '2020-07-26T19:09:20-04:00'
-categories: []
-projects: []
-slug: time-value-of-money
-subtitle: ''
-summary: ''
-tags: []
-authors: []
----
-
-
-
-<div id="time-value-of-money" class="section level3">
-<h3>Time Value of Money</h3>
-<p>Understanding the time value of money is essential to finance. The value of something is not a static but dynamic thing. Dating back as far as 5000 BC, this concept is the foundation of modern day finance (<a href="https://www.encyclopedia.com/finance/encyclopedias-almanacs-transcripts-and-maps/time-value-money" class="uri">https://www.encyclopedia.com/finance/encyclopedias-almanacs-transcripts-and-maps/time-value-money</a>). Thankfully R makes calculations for TVM easy and efficient. TVM calculations are broken down into 4 topicsL Future Value, Present Value, Rates of Return and Amortization.</p>
-<pre class="r"><code>#install.packages(&quot;modelr&quot;)
-#install.packages(&quot;FinCal&quot;)
-#install.packages(&quot;dplyr&quot;)
-#install.packages(&quot;FinancialMath&quot;)
-
-library(&quot;modelr&quot;)
-library(&quot;FinCal&quot;)
-library(&quot;dplyr&quot;)</code></pre>
-<pre><code>## 
-## Attaching package: &#39;dplyr&#39;</code></pre>
-<pre><code>## The following objects are masked from &#39;package:stats&#39;:
-## 
-##     filter, lag</code></pre>
-<pre><code>## The following objects are masked from &#39;package:base&#39;:
-## 
-##     intersect, setdiff, setequal, union</code></pre>
-<pre class="r"><code>library(&quot;FinancialMath&quot;)
-library(&quot;ggplot2&quot;)</code></pre>
-</div>
-<div id="future-value-and-present-value" class="section level2">
-<h2>Future Value and Present Value</h2>
-<pre class="r"><code>#Below is random cash flow data I have added for these exercises.  We are going to assume our invesment period is 8 years, interest is 10%, and this is an ordinary annunity
-cash_flow &lt;- c(-10023,-84949,-84940,-83838,-93838,-73839,-83383,-102939)
-
-i = 1.10
-#Manual calculation of FV
-(cash_flow[1] * i ^ 7) + (cash_flow[2] * i ^ 6)  +  (cash_flow[3] * i ^ 5) + (cash_flow[4] * i ^ 4) + (cash_flow[5] * i ^ 3) + (cash_flow[6] * i ^ 2) + (cash_flow[7] * i ^ 1) + (cash_flow[8])</code></pre>
-<pre><code>## [1] -838472.1</code></pre>
-<pre class="r"><code>#R makes this calculation much easier
-fv.uneven(.1,cash_flow)</code></pre>
-<pre><code>## [1] 838472.1</code></pre>
-<pre class="r"><code>#FV of Annuity Due.  Int = 10%, T = 8, type = 1 which means payment at the beginning of each period
- fv(.10,8,pv = 0, pmt = 1000, 1)</code></pre>
-<pre><code>## [1] -12579.48</code></pre>
-<pre class="r"><code> #Manual Calculation of PV
- (cash_flow[1]/ (i) ^ 1) + (cash_flow[2] / i ^ 2)  +  (cash_flow[3] / i ^ 3) + (cash_flow[4] / i ^ 4) + (cash_flow[5] / i ^ 5) + (cash_flow[6] / i ^ 6) + (cash_flow[7] / i ^ 7) + (cash_flow[8]
- / i ^ 8)</code></pre>
-<pre><code>## [1] -391153.4</code></pre>
-<pre class="r"><code> #Again R makes PV calculation easier
- pv.uneven(.1, cash_flow)</code></pre>
-<pre><code>## [1] 391153.4</code></pre>
-<pre class="r"><code> #PV of Annuity Due.  Int = 10%, T = 8, type = 1 which means payment at the beginning of each period
- pv(.1,8, fv = 0, pmt = 1000, type = 1)</code></pre>
-<pre><code>## [1] -5868.419</code></pre>
-</div>
-<div id="rates-of-return" class="section level2">
-<h2>Rates of Return</h2>
-<pre class="r"><code>#Calculating Rates of Return in R
-FV = 149374838
-PV = 84933
-N = 89
-M = 4 # number of compounding periods
-Iper = .1
-
-#Calculating annualized returns manually.  Couldnt find a function for this in R
-return = (FV/PV) ^ 1/N - 1
-
-return</code></pre>
-<pre><code>## [1] 18.76109</code></pre>
-<pre class="r"><code>#Finding the EAR.  
-EAR = (1 + Iper/M)^M - 1
-
-EAR</code></pre>
-<pre><code>## [1] 0.1038129</code></pre>
-<p>#Amortization Tablesin R</p>
-<pre class="r"><code>#Add Numbers to Values to Quick Calculations
-FV = 0
-PV = 300000
-N = 30
-M = 12 # frequency of payments per year
-Iper = .023
-
-
-#Step 1 find the PMT
-PMT = -pmt(Iper/M,N*M,PV,FV,type = 0)
-
-PMT</code></pre>
-<pre><code>## [1] 1154.404</code></pre>
-<pre class="r"><code>#Step 2 create the data frame
-Amort &lt;- data.frame(payment = 1:360)
-
-#Step 3 assign beginning value to start loop
-Amort[1,2] &lt;- PV
-
-#Step 4 Create for loop to fill in amortization table
- for(i in 1:360){  #number of periods is 360
-
-Amort[i,3] &lt;- Amort[i,2] * Iper/12 #Interest Paid is Beginning Balance x Interest Rate
-
-Amort[i,4] &lt;- PMT - Amort[i,3] #Priciple Paid is equal to the Payment minus Interest Paid
-
-Amort[i,5] &lt;- Amort[i,2] - Amort[i,4] #Ending Balance is equal to the Beginning Balance minus the Principle Paid
-
-Amort[i + 1,2]&lt;- Amort[i,5] #Assign Beginning Balance as last payments Ending Balance
-
+\PassOptionsToPackage{unicode=true}{hyperref} % options for packages loaded elsewhere
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provides euro and other symbols
+\else % if luatex or xelatex
+  \usepackage{unicode-math}
+  \defaultfontfeatures{Ligatures=TeX,Scale=MatchLowercase}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{%
+\usepackage[]{microtype}
+\UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\IfFileExists{parskip.sty}{%
+\usepackage{parskip}
+}{% else
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
 }
+\usepackage{hyperref}
+\hypersetup{
+            pdftitle={Time Value of Money},
+            pdfauthor={Colin James},
+            pdfborder={0 0 0},
+            breaklinks=true}
+\urlstyle{same}  % don't use monospace font for urls
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.77,0.63,0.00}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{graphicx,grffile}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{0}
+% Redefines (sub)paragraphs to behave more like sections
+\ifx\paragraph\undefined\else
+\let\oldparagraph\paragraph
+\renewcommand{\paragraph}[1]{\oldparagraph{#1}\mbox{}}
+\fi
+\ifx\subparagraph\undefined\else
+\let\oldsubparagraph\subparagraph
+\renewcommand{\subparagraph}[1]{\oldsubparagraph{#1}\mbox{}}
+\fi
 
-#Add column names
-names(Amort)[2]&lt;- &#39;Beginning Balance&#39;
-names(Amort)[3]&lt;- &#39;Interest Paid&#39;
-names(Amort)[4]&lt;- &#39;Principle Paid&#39;
-names(Amort)[5]&lt;- &#39;Ending Balance&#39;
+% set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
 
-#View the finished table
-head(Amort)</code></pre>
-<pre><code>##   payment Beginning Balance Interest Paid Principle Paid Ending Balance
+\usepackage{etoolbox}
+\makeatletter
+\providecommand{\subtitle}[1]{% add subtitle to \maketitle
+  \apptocmd{\@title}{\par {\large #1 \par}}{}{}
+}
+\makeatother
+
+\title{Time Value of Money}
+\author{Colin James}
+\date{2020-07-26}
+
+\begin{document}
+\maketitle
+
+\hypertarget{time-value-of-money}{%
+\subsubsection{Time Value of Money}\label{time-value-of-money}}
+
+Understanding the time value of money is essential to finance. The value
+of something is not a static but dynamic thing. Dating back as far as
+5000 BC, this concept is the foundation of modern day finance
+(\url{https://www.encyclopedia.com/finance/encyclopedias-almanacs-transcripts-and-maps/time-value-money}).
+Thankfully R makes calculations for TVM easy and efficient. TVM
+calculations are broken down into 4 topicsL Future Value, Present Value,
+Rates of Return and Amortization.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#install.packages("modelr")}
+\CommentTok{#install.packages("FinCal")}
+\CommentTok{#install.packages("dplyr")}
+\CommentTok{#install.packages("FinancialMath")}
+
+\KeywordTok{library}\NormalTok{(}\StringTok{"modelr"}\NormalTok{)}
+\KeywordTok{library}\NormalTok{(}\StringTok{"FinCal"}\NormalTok{)}
+\KeywordTok{library}\NormalTok{(}\StringTok{"dplyr"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Attaching package: 'dplyr'
+\end{verbatim}
+
+\begin{verbatim}
+## The following objects are masked from 'package:stats':
+## 
+##     filter, lag
+\end{verbatim}
+
+\begin{verbatim}
+## The following objects are masked from 'package:base':
+## 
+##     intersect, setdiff, setequal, union
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{library}\NormalTok{(}\StringTok{"FinancialMath"}\NormalTok{)}
+\KeywordTok{library}\NormalTok{(}\StringTok{"ggplot2"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{future-value-and-present-value}{%
+\subsection{Future Value and Present
+Value}\label{future-value-and-present-value}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#Below is random cash flow data I have added for these exercises.  We are going to assume our invesment period is 8 years, interest is 10%, and this is an ordinary annunity}
+\NormalTok{cash_flow <-}\StringTok{ }\KeywordTok{c}\NormalTok{(}\OperatorTok{-}\DecValTok{10023}\NormalTok{,}\OperatorTok{-}\DecValTok{84949}\NormalTok{,}\OperatorTok{-}\DecValTok{84940}\NormalTok{,}\OperatorTok{-}\DecValTok{83838}\NormalTok{,}\OperatorTok{-}\DecValTok{93838}\NormalTok{,}\OperatorTok{-}\DecValTok{73839}\NormalTok{,}\OperatorTok{-}\DecValTok{83383}\NormalTok{,}\OperatorTok{-}\DecValTok{102939}\NormalTok{)}
+
+\NormalTok{i =}\StringTok{ }\FloatTok{1.10}
+\CommentTok{#Manual calculation of FV}
+\NormalTok{(cash_flow[}\DecValTok{1}\NormalTok{] }\OperatorTok{*}\StringTok{ }\NormalTok{i }\OperatorTok{^}\StringTok{ }\DecValTok{7}\NormalTok{) }\OperatorTok{+}\StringTok{ }\NormalTok{(cash_flow[}\DecValTok{2}\NormalTok{] }\OperatorTok{*}\StringTok{ }\NormalTok{i }\OperatorTok{^}\StringTok{ }\DecValTok{6}\NormalTok{)  }\OperatorTok{+}\StringTok{  }\NormalTok{(cash_flow[}\DecValTok{3}\NormalTok{] }\OperatorTok{*}\StringTok{ }\NormalTok{i }\OperatorTok{^}\StringTok{ }\DecValTok{5}\NormalTok{) }\OperatorTok{+}\StringTok{ }\NormalTok{(cash_flow[}\DecValTok{4}\NormalTok{] }\OperatorTok{*}\StringTok{ }\NormalTok{i }\OperatorTok{^}\StringTok{ }\DecValTok{4}\NormalTok{) }\OperatorTok{+}\StringTok{ }\NormalTok{(cash_flow[}\DecValTok{5}\NormalTok{] }\OperatorTok{*}\StringTok{ }\NormalTok{i }\OperatorTok{^}\StringTok{ }\DecValTok{3}\NormalTok{) }\OperatorTok{+}\StringTok{ }\NormalTok{(cash_flow[}\DecValTok{6}\NormalTok{] }\OperatorTok{*}\StringTok{ }\NormalTok{i }\OperatorTok{^}\StringTok{ }\DecValTok{2}\NormalTok{) }\OperatorTok{+}\StringTok{ }\NormalTok{(cash_flow[}\DecValTok{7}\NormalTok{] }\OperatorTok{*}\StringTok{ }\NormalTok{i }\OperatorTok{^}\StringTok{ }\DecValTok{1}\NormalTok{) }\OperatorTok{+}\StringTok{ }\NormalTok{(cash_flow[}\DecValTok{8}\NormalTok{])}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] -838472.1
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#R makes this calculation much easier}
+\KeywordTok{fv.uneven}\NormalTok{(.}\DecValTok{1}\NormalTok{,cash_flow)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 838472.1
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#FV of Annuity Due.  Int = 10%, T = 8, type = 1 which means payment at the beginning of each period}
+ \KeywordTok{fv}\NormalTok{(.}\DecValTok{10}\NormalTok{,}\DecValTok{8}\NormalTok{,}\DataTypeTok{pv =} \DecValTok{0}\NormalTok{, }\DataTypeTok{pmt =} \DecValTok{1000}\NormalTok{, }\DecValTok{1}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] -12579.48
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+ \CommentTok{#Manual Calculation of PV}
+\NormalTok{ (cash_flow[}\DecValTok{1}\NormalTok{]}\OperatorTok{/}\StringTok{ }\NormalTok{(i) }\OperatorTok{^}\StringTok{ }\DecValTok{1}\NormalTok{) }\OperatorTok{+}\StringTok{ }\NormalTok{(cash_flow[}\DecValTok{2}\NormalTok{] }\OperatorTok{/}\StringTok{ }\NormalTok{i }\OperatorTok{^}\StringTok{ }\DecValTok{2}\NormalTok{)  }\OperatorTok{+}\StringTok{  }\NormalTok{(cash_flow[}\DecValTok{3}\NormalTok{] }\OperatorTok{/}\StringTok{ }\NormalTok{i }\OperatorTok{^}\StringTok{ }\DecValTok{3}\NormalTok{) }\OperatorTok{+}\StringTok{ }\NormalTok{(cash_flow[}\DecValTok{4}\NormalTok{] }\OperatorTok{/}\StringTok{ }\NormalTok{i }\OperatorTok{^}\StringTok{ }\DecValTok{4}\NormalTok{) }\OperatorTok{+}\StringTok{ }\NormalTok{(cash_flow[}\DecValTok{5}\NormalTok{] }\OperatorTok{/}\StringTok{ }\NormalTok{i }\OperatorTok{^}\StringTok{ }\DecValTok{5}\NormalTok{) }\OperatorTok{+}\StringTok{ }\NormalTok{(cash_flow[}\DecValTok{6}\NormalTok{] }\OperatorTok{/}\StringTok{ }\NormalTok{i }\OperatorTok{^}\StringTok{ }\DecValTok{6}\NormalTok{) }\OperatorTok{+}\StringTok{ }\NormalTok{(cash_flow[}\DecValTok{7}\NormalTok{] }\OperatorTok{/}\StringTok{ }\NormalTok{i }\OperatorTok{^}\StringTok{ }\DecValTok{7}\NormalTok{) }\OperatorTok{+}\StringTok{ }\NormalTok{(cash_flow[}\DecValTok{8}\NormalTok{]}
+ \OperatorTok{/}\StringTok{ }\NormalTok{i }\OperatorTok{^}\StringTok{ }\DecValTok{8}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] -391153.4
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+ \CommentTok{#Again R makes PV calculation easier}
+ \KeywordTok{pv.uneven}\NormalTok{(.}\DecValTok{1}\NormalTok{, cash_flow)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 391153.4
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+ \CommentTok{#PV of Annuity Due.  Int = 10%, T = 8, type = 1 which means payment at the beginning of each period}
+ \KeywordTok{pv}\NormalTok{(.}\DecValTok{1}\NormalTok{,}\DecValTok{8}\NormalTok{, }\DataTypeTok{fv =} \DecValTok{0}\NormalTok{, }\DataTypeTok{pmt =} \DecValTok{1000}\NormalTok{, }\DataTypeTok{type =} \DecValTok{1}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] -5868.419
+\end{verbatim}
+
+\hypertarget{rates-of-return}{%
+\subsection{Rates of Return}\label{rates-of-return}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#Calculating Rates of Return in R}
+\NormalTok{FV =}\StringTok{ }\DecValTok{149374838}
+\NormalTok{PV =}\StringTok{ }\DecValTok{84933}
+\NormalTok{N =}\StringTok{ }\DecValTok{89}
+\NormalTok{M =}\StringTok{ }\DecValTok{4} \CommentTok{# number of compounding periods}
+\NormalTok{Iper =}\StringTok{ }\FloatTok{.1}
+
+\CommentTok{#Calculating annualized returns manually.  Couldnt find a function for this in R}
+\NormalTok{return =}\StringTok{ }\NormalTok{(FV}\OperatorTok{/}\NormalTok{PV) }\OperatorTok{^}\StringTok{ }\DecValTok{1}\OperatorTok{/}\NormalTok{N }\OperatorTok{-}\StringTok{ }\DecValTok{1}
+
+\NormalTok{return}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 18.76109
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#Finding the EAR.  }
+\NormalTok{EAR =}\StringTok{ }\NormalTok{(}\DecValTok{1} \OperatorTok{+}\StringTok{ }\NormalTok{Iper}\OperatorTok{/}\NormalTok{M)}\OperatorTok{^}\NormalTok{M }\OperatorTok{-}\StringTok{ }\DecValTok{1}
+
+\NormalTok{EAR}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 0.1038129
+\end{verbatim}
+
+\#Amortization Tablesin R
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#Add Numbers to Values to Quick Calculations}
+\NormalTok{FV =}\StringTok{ }\DecValTok{0}
+\NormalTok{PV =}\StringTok{ }\DecValTok{300000}
+\NormalTok{N =}\StringTok{ }\DecValTok{30}
+\NormalTok{M =}\StringTok{ }\DecValTok{12} \CommentTok{# frequency of payments per year}
+\NormalTok{Iper =}\StringTok{ }\FloatTok{.023}
+
+
+\CommentTok{#Step 1 find the PMT}
+\NormalTok{PMT =}\StringTok{ }\OperatorTok{-}\KeywordTok{pmt}\NormalTok{(Iper}\OperatorTok{/}\NormalTok{M,N}\OperatorTok{*}\NormalTok{M,PV,FV,}\DataTypeTok{type =} \DecValTok{0}\NormalTok{)}
+
+\NormalTok{PMT}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 1154.404
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#Step 2 create the data frame}
+\NormalTok{Amort <-}\StringTok{ }\KeywordTok{data.frame}\NormalTok{(}\DataTypeTok{payment =} \DecValTok{1}\OperatorTok{:}\DecValTok{360}\NormalTok{)}
+
+\CommentTok{#Step 3 assign beginning value to start loop}
+\NormalTok{Amort[}\DecValTok{1}\NormalTok{,}\DecValTok{2}\NormalTok{] <-}\StringTok{ }\NormalTok{PV}
+
+\CommentTok{#Step 4 Create for loop to fill in amortization table}
+ \ControlFlowTok{for}\NormalTok{(i }\ControlFlowTok{in} \DecValTok{1}\OperatorTok{:}\DecValTok{360}\NormalTok{)\{  }\CommentTok{#number of periods is 360}
+
+\NormalTok{Amort[i,}\DecValTok{3}\NormalTok{] <-}\StringTok{ }\NormalTok{Amort[i,}\DecValTok{2}\NormalTok{] }\OperatorTok{*}\StringTok{ }\NormalTok{Iper}\OperatorTok{/}\DecValTok{12} \CommentTok{#Interest Paid is Beginning Balance x Interest Rate}
+
+\NormalTok{Amort[i,}\DecValTok{4}\NormalTok{] <-}\StringTok{ }\NormalTok{PMT }\OperatorTok{-}\StringTok{ }\NormalTok{Amort[i,}\DecValTok{3}\NormalTok{] }\CommentTok{#Priciple Paid is equal to the Payment minus Interest Paid}
+
+\NormalTok{Amort[i,}\DecValTok{5}\NormalTok{] <-}\StringTok{ }\NormalTok{Amort[i,}\DecValTok{2}\NormalTok{] }\OperatorTok{-}\StringTok{ }\NormalTok{Amort[i,}\DecValTok{4}\NormalTok{] }\CommentTok{#Ending Balance is equal to the Beginning Balance minus the Principle Paid}
+
+\NormalTok{Amort[i }\OperatorTok{+}\StringTok{ }\DecValTok{1}\NormalTok{,}\DecValTok{2}\NormalTok{]<-}\StringTok{ }\NormalTok{Amort[i,}\DecValTok{5}\NormalTok{] }\CommentTok{#Assign Beginning Balance as last payments Ending Balance}
+
+\NormalTok{\}}
+
+\CommentTok{#Add column names}
+\KeywordTok{names}\NormalTok{(Amort)[}\DecValTok{2}\NormalTok{]<-}\StringTok{ 'Beginning Balance'}
+\KeywordTok{names}\NormalTok{(Amort)[}\DecValTok{3}\NormalTok{]<-}\StringTok{ 'Interest Paid'}
+\KeywordTok{names}\NormalTok{(Amort)[}\DecValTok{4}\NormalTok{]<-}\StringTok{ 'Principle Paid'}
+\KeywordTok{names}\NormalTok{(Amort)[}\DecValTok{5}\NormalTok{]<-}\StringTok{ 'Ending Balance'}
+
+\CommentTok{#View the finished table}
+\KeywordTok{head}\NormalTok{(Amort)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##   payment Beginning Balance Interest Paid Principle Paid Ending Balance
 ## 1       1          300000.0      575.0000       579.4039       299420.6
 ## 2       2          299420.6      573.8895       580.5144       298840.1
 ## 3       3          298840.1      572.7768       581.6270       298258.5
 ## 4       4          298258.5      571.6620       582.7418       297675.7
 ## 5       5          297675.7      570.5451       583.8588       297091.9
-## 6       6          297091.9      569.4261       584.9778       296506.9</code></pre>
-<pre class="r"><code>#I created this amortization using a for loop, but fortunately R has a package for this
+## 6       6          297091.9      569.4261       584.9778       296506.9
+\end{verbatim}
 
-#Amort.table function in R
-amort_table &lt;- amort.table(Loan=PV,n=360,i=Iper,ic=12,pf=12)
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#I created this amortization using a for loop, but fortunately R has a package for this}
 
-head(amort_table[&quot;Schedule&quot;], n = 10L)</code></pre>
-<pre><code>## $Schedule
+\CommentTok{#Amort.table function in R}
+\NormalTok{amort_table <-}\StringTok{ }\KeywordTok{amort.table}\NormalTok{(}\DataTypeTok{Loan=}\NormalTok{PV,}\DataTypeTok{n=}\DecValTok{360}\NormalTok{,}\DataTypeTok{i=}\NormalTok{Iper,}\DataTypeTok{ic=}\DecValTok{12}\NormalTok{,}\DataTypeTok{pf=}\DecValTok{12}\NormalTok{)}
+
+\KeywordTok{head}\NormalTok{(amort_table[}\StringTok{"Schedule"}\NormalTok{], }\DataTypeTok{n =}\NormalTok{ 10L)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## $Schedule
 ##      Year Payment Interest Paid Principal Paid   Balance
 ## 1    0.08  1154.4        575.00         579.40 299420.60
 ## 2    0.17  1154.4        573.89         580.51 298840.08
@@ -504,13 +714,21 @@ head(amort_table[&quot;Schedule&quot;], n = 10L)</code></pre>
 ## 357 29.75  1154.4          8.81        1145.60   3449.98
 ## 358 29.83  1154.4          6.61        1147.79   2302.19
 ## 359 29.92  1154.4          4.41        1149.99   1152.20
-## 360 30.00  1154.4          2.21        1152.20      0.00</code></pre>
-<pre class="r"><code>amort_schedule &lt;- as.data.frame(amort_table[&quot;Schedule&quot;])
-amort_schedule$period &lt;- c(1:360)
+## 360 30.00  1154.4          2.21        1152.20      0.00
+\end{verbatim}
 
-#From graph, 
-ggplot(data = amort_schedule, aes(x = period, y = Schedule.Principal.Paid)) +
-    geom_bar(stat = &quot;identity&quot;, color=&quot;blue&quot;) + 
-    labs (title = &quot;Amount of Priciple Paid Over Life of Loan&quot;, x = &quot;Payment Period&quot;, y = &quot;Dollars&quot;)</code></pre>
-<p><img src="/post/2020-07-26-time-value-of-money.en_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
-</div>
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{amort_schedule <-}\StringTok{ }\KeywordTok{as.data.frame}\NormalTok{(amort_table[}\StringTok{"Schedule"}\NormalTok{])}
+\NormalTok{amort_schedule}\OperatorTok{$}\NormalTok{period <-}\StringTok{ }\KeywordTok{c}\NormalTok{(}\DecValTok{1}\OperatorTok{:}\DecValTok{360}\NormalTok{)}
+
+\CommentTok{#From graph, }
+\KeywordTok{ggplot}\NormalTok{(}\DataTypeTok{data =}\NormalTok{ amort_schedule, }\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x =}\NormalTok{ period, }\DataTypeTok{y =}\NormalTok{ Schedule.Principal.Paid)) }\OperatorTok{+}
+\StringTok{    }\KeywordTok{geom_bar}\NormalTok{(}\DataTypeTok{stat =} \StringTok{"identity"}\NormalTok{, }\DataTypeTok{color=}\StringTok{"blue"}\NormalTok{) }\OperatorTok{+}\StringTok{ }
+\StringTok{    }\KeywordTok{labs}\NormalTok{ (}\DataTypeTok{title =} \StringTok{"Amount of Priciple Paid Over Life of Loan"}\NormalTok{, }\DataTypeTok{x =} \StringTok{"Payment Period"}\NormalTok{, }\DataTypeTok{y =} \StringTok{"Dollars"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{2020-07-26-time-value-of-money.en_files/figure-latex/unnamed-chunk-4-1.pdf}
+
+\end{document}
