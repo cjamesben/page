@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-
-<!--XBRL Document Created with Wdesk from Workiva-->
-<!--Copyright 2020 Workiva-->
-<!--r:0867d0d7-fac0-4ec6-924d-e59aefbc17dc,g:224ef540-242d-4734-ad3a-19b0528e4e35-->
-<link:linkbase xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
-  <link:roleRef roleURI="http://google.com/role/CoverPageCoverPage" xlink:type="simple" xlink:href="goog-20200603.xsd#CoverPageCoverPage"/>
-  <link:calculationLink xlink:role="http://google.com/role/CoverPageCoverPage" xlink:type="extended"/>
-</link:linkbase>
