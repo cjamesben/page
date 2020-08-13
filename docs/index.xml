@@ -77,6 +77,560 @@
     </item>
     
     <item>
+      <title>Connecting to FRED Data</title>
+      <link>/post/connecting-to-fred-data/</link>
+      <pubDate>Tue, 11 Aug 2020 00:00:00 +0000</pubDate>
+      <guid>/post/connecting-to-fred-data/</guid>
+      <description>
+
+
+&lt;div id=&#34;reading-in-data-from-fred&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Reading in Data From FRED&lt;/h3&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;#install.packages(&amp;quot;modelr&amp;quot;)
+#install.packages(&amp;quot;FinCal&amp;quot;)
+#install.packages(&amp;quot;dplyr&amp;quot;)
+#install.packages(&amp;quot;FinancialMath&amp;quot;)
+#install.packages(&amp;quot;devtools&amp;quot;)
+#install.packages(&amp;quot;tidyverse&amp;quot;)
+#install.packages(&amp;quot;dplyr&amp;quot;)
+#install.packages(&amp;quot;ggpubr&amp;quot;)
+#install.packages(&amp;quot;epitools&amp;quot;)
+#install.packages(&amp;quot;data.table&amp;quot;)
+#install.packages(&amp;quot;usmap&amp;quot;)
+#install.packages(&amp;quot;maps&amp;quot;)
+#install.packages(&amp;quot;cowplot&amp;quot;)
+#install.packages(&amp;quot;ztable&amp;quot;)
+
+library(&amp;quot;modelr&amp;quot;)
+library(&amp;quot;FinCal&amp;quot;) 
+library(&amp;quot;dplyr&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## 
+## Attaching package: &amp;#39;dplyr&amp;#39;&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## The following objects are masked from &amp;#39;package:stats&amp;#39;:
+## 
+##     filter, lag&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## The following objects are masked from &amp;#39;package:base&amp;#39;:
+## 
+##     intersect, setdiff, setequal, union&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(&amp;quot;FinancialMath&amp;quot;)
+library(&amp;quot;ggplot2&amp;quot;)
+library(&amp;quot;quantmod&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## Loading required package: xts&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## Warning: package &amp;#39;xts&amp;#39; was built under R version 3.5.2&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## Loading required package: zoo&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## 
+## Attaching package: &amp;#39;zoo&amp;#39;&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## The following objects are masked from &amp;#39;package:base&amp;#39;:
+## 
+##     as.Date, as.Date.numeric&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## 
+## Attaching package: &amp;#39;xts&amp;#39;&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## The following objects are masked from &amp;#39;package:dplyr&amp;#39;:
+## 
+##     first, last&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## Loading required package: TTR&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## Warning: package &amp;#39;TTR&amp;#39; was built under R version 3.5.2&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## Version 0.4-0 included new data defaults. See ?getSymbols.&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## 
+## Attaching package: &amp;#39;quantmod&amp;#39;&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## The following object is masked from &amp;#39;package:FinCal&amp;#39;:
+## 
+##     lineChart&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(&amp;quot;epitools&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## Warning: package &amp;#39;epitools&amp;#39; was built under R version 3.5.2&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(&amp;quot;data.table&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## Warning: package &amp;#39;data.table&amp;#39; was built under R version 3.5.2&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## 
+## Attaching package: &amp;#39;data.table&amp;#39;&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## The following objects are masked from &amp;#39;package:xts&amp;#39;:
+## 
+##     first, last&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## The following objects are masked from &amp;#39;package:dplyr&amp;#39;:
+## 
+##     between, first, last&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(&amp;quot;usmap&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## Warning: package &amp;#39;usmap&amp;#39; was built under R version 3.5.2&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(&amp;quot;maps&amp;quot;)
+library(&amp;quot;cowplot&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## Warning: package &amp;#39;cowplot&amp;#39; was built under R version 3.5.2&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## 
+## ********************************************************&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## Note: As of version 1.0.0, cowplot does not change the&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##   default ggplot2 theme anymore. To recover the previous&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##   behavior, execute:
+##   theme_set(theme_cowplot())&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## ********************************************************&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(&amp;quot;ztable&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## Welcome to package ztable ver 0.2.0&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div id=&#34;connecting-to-fred-through-an-r-package-downloaded-from-github&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Connecting to FRED through an R package downloaded from GitHub&lt;/h2&gt;
+&lt;/div&gt;
+&lt;div id=&#34;us-gdp-from-jan-1st-1990-to-today&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;US GDP from Jan 1st, 1990 to today&lt;/h2&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;#See https://fred.stlouisfed.org/docs/api/fred/ for FRED Data information
+
+
+#See https://fred.stlouisfed.org/tags/series for series IDs
+fredr(series_id = &amp;quot;UNRATE&amp;quot;,
+  observation_start = as.Date(&amp;quot;1990-01-01&amp;quot;))&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## # A tibble: 367 x 3
+##    date       series_id value
+##    &amp;lt;date&amp;gt;     &amp;lt;chr&amp;gt;     &amp;lt;dbl&amp;gt;
+##  1 1990-01-01 UNRATE      5.4
+##  2 1990-02-01 UNRATE      5.3
+##  3 1990-03-01 UNRATE      5.2
+##  4 1990-04-01 UNRATE      5.4
+##  5 1990-05-01 UNRATE      5.4
+##  6 1990-06-01 UNRATE      5.2
+##  7 1990-07-01 UNRATE      5.5
+##  8 1990-08-01 UNRATE      5.7
+##  9 1990-09-01 UNRATE      5.9
+## 10 1990-10-01 UNRATE      5.9
+## # … with 357 more rows&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;#US GDP from Jan 1st 1990 to now
+GDP &amp;lt;- fredr(series_id = &amp;quot;GDP&amp;quot;,
+  observation_start = as.Date(&amp;quot;1990-01-01&amp;quot;))
+
+GDP %&amp;gt;%
+  ggplot(aes(x = date, y = value)) +
+  geom_line()  +
+  ggtitle(&amp;quot;GDP for US in Billions of Dollars&amp;quot;) +
+  labs(x = &amp;quot;Date&amp;quot;, y = &amp;quot;Billions of Dollars&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;img src=&#34;/post/2020-08-11-connecting-to-fred-data.en_files/figure-html/unnamed-chunk-3-1.png&#34; width=&#34;672&#34; /&gt;
+[Us GDP has steadily increased since 1990 with slight deviations from norm in 2009 and most recently 2020. 2009 deviation explained by 2008 financial crisis, and 2020 deviation explained by the COVID pandemic.]&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;percentage-change-in-richmond-virginia-poverty-rate-since-january-71990&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Percentage Change in Richmond, Virginia Poverty Rate since January 7,1990&lt;/h2&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;#Change in Richmond, Virginia Poverty Rate since January 7,1990
+RVA_POV &amp;lt;- fredr(series_id = &amp;quot;S1701ACS051760&amp;quot;,
+  observation_start = as.Date(&amp;quot;2013-01-01&amp;quot;),
+  frequency = &amp;quot;a&amp;quot;)
+
+RVA_POV %&amp;gt;%
+  ggplot(aes(x = date, y = value)) +
+  geom_line()  +
+  ggtitle(&amp;quot;Poverty Rate for Richmond VA&amp;quot;) +
+  labs(x = &amp;quot;Date&amp;quot;, y = &amp;quot;% of Population&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;img src=&#34;/post/2020-08-11-connecting-to-fred-data.en_files/figure-html/unnamed-chunk-4-1.png&#34; width=&#34;672&#34; /&gt;&lt;/p&gt;
+&lt;p&gt;[Poverty Rate in Richmond, Virginia has decreased since 2013 from 25.6% to 24.5%. With an economy that improved substantially during this time period, this observation doesn’t seem difficult to imagine]&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;#Home ownership rate for Virginia
+VA_Home &amp;lt;- fredr(series_id = &amp;quot;VAHOWN&amp;quot;,
+  observation_start = as.Date(&amp;quot;1984-01-01&amp;quot;),
+  frequency = &amp;quot;a&amp;quot;)
+
+VA_Home %&amp;gt;%
+  ggplot(aes(x = date, y = value)) +
+  geom_line()  +
+  ggtitle(&amp;quot;Home Ownership in VA&amp;quot;) +
+  labs(x = &amp;quot;Date&amp;quot;, y = &amp;quot;% in Population&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;img src=&#34;/post/2020-08-11-connecting-to-fred-data.en_files/figure-html/unnamed-chunk-5-1.png&#34; width=&#34;672&#34; /&gt;
+[Home Ownership in Virginia appears to have peaks in 1989, 1994, 2001, 2003, 2007, 2013, 2017 and 2019. From this visualization you can clearly see the the housing bubble in the early 2000s that led to the 2008 financial crisis. Home ownership appears to have a slight decline since 2007.]&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;correlation-analysis-of-tips-interest-rates-and-nyse-stock-prices&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Correlation Analysis of TIPS Interest Rates and NYSE Stock Prices&lt;/h2&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;#Daily Interest Rates for 10 Year Treasury Inflation Indexed Securities
+T_INT_RATES &amp;lt;- fredr(series_id = &amp;quot;DFII10&amp;quot;,
+  observation_start = as.Date(&amp;quot;2003-01-02&amp;quot;),
+  frequency = &amp;quot;d&amp;quot;)
+
+#Daily Stock Data is downloaded using quantmod
+DJI &amp;lt;- getSymbols(&amp;quot;DIA&amp;quot;, src = &amp;quot;yahoo&amp;quot;, from = &amp;#39;2003-01-02&amp;#39;, to = &amp;quot;2020-07-31&amp;quot;, auto.assign = TRUE)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## &amp;#39;getSymbols&amp;#39; currently uses auto.assign=TRUE by default, but will
+## use auto.assign=FALSE in 0.5-0. You will still be able to use
+## &amp;#39;loadSymbols&amp;#39; to automatically load data. getOption(&amp;quot;getSymbols.env&amp;quot;)
+## and getOption(&amp;quot;getSymbols.auto.assign&amp;quot;) will still be checked for
+## alternate defaults.
+## 
+## This message is shown once per session and may be disabled by setting 
+## options(&amp;quot;getSymbols.warning4.0&amp;quot;=FALSE). See ?getSymbols for details.&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;DIA_Daily_Return &amp;lt;- dailyReturn(DIA)
+
+#Daily Stock Prices are Plotted
+DIA_Daily_Return %&amp;gt;%
+  ggplot(aes(x = index(DIA_Daily_Return), y = daily.returns)) +
+  geom_line(size=0.5, color=&amp;quot;steel blue&amp;quot;) +
+  ggtitle(&amp;quot;Daily Return for Dow Jones ETF since 2003&amp;quot;) +
+  scale_x_date(date_breaks = &amp;quot;years&amp;quot;, date_labels = &amp;quot;%Y&amp;quot;) +
+  labs(x = &amp;quot;Date&amp;quot;, y = &amp;quot;Adjusted Price&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;img src=&#34;/post/2020-08-11-connecting-to-fred-data.en_files/figure-html/unnamed-chunk-6-1.png&#34; width=&#34;672&#34; /&gt;&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;#Left Join by Date
+DIA_Daily_Return &amp;lt;- data.frame(DIA_Daily_Return)
+
+DIA_Daily_Return$date &amp;lt;- as.Date(rownames(DIA_Daily_Return))
+
+T_INT_RATES$TIPS_Rate &amp;lt;- T_INT_RATES$value
+
+Int_Rate_Stock_Data &amp;lt;- merge(x = DIA_Daily_Return, y = T_INT_RATES, by = &amp;quot;date&amp;quot;, all.x = TRUE)
+
+head(Int_Rate_Stock_Data)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##         date daily.returns series_id value TIPS_Rate
+## 1 2003-01-02  0.0241235645    DFII10  2.43      2.43
+## 2 2003-01-03  0.0020886633    DFII10  2.43      2.43
+## 3 2003-01-06  0.0151690248    DFII10  2.46      2.46
+## 4 2003-01-07  0.0005703548    DFII10  2.42      2.42
+## 5 2003-01-08 -0.0176698926    DFII10  2.29      2.29
+## 6 2003-01-09  0.0186840088    DFII10  2.41      2.41&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;cor.test(Int_Rate_Stock_Data$daily.returns, Int_Rate_Stock_Data$TIPS_Rate)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## 
+##  Pearson&amp;#39;s product-moment correlation
+## 
+## data:  Int_Rate_Stock_Data$daily.returns and Int_Rate_Stock_Data$TIPS_Rate
+## t = -0.59466, df = 4391, p-value = 0.5521
+## alternative hypothesis: true correlation is not equal to 0
+## 95 percent confidence interval:
+##  -0.03853599  0.02060440
+## sample estimates:
+##          cor 
+## -0.008973643&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;[Similarly, this analysis was done to try to determine if there was a strong correlation between the Dow Jones and Interest Rates for 10 Year Treasury Inflation Indexed Securities. The thought behind this was increased TIP rates signaled an improving economy thus causing an increase in the price of the Dow Jones Index and in this case an ETF. With a P value above the .05 threshold there is not enough evidence to suggest a relationship exists.]&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;correlation-analysis-of-tips-interest-rates-and-gdp&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Correlation Analysis of TIPS Interest Rates and GDP&lt;/h2&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;#Daily Interest Rates for S&amp;amp;P/Case-Shiller U.S. National Home Price Index
+HPI &amp;lt;- fredr(series_id = &amp;quot;CSUSHPINSA&amp;quot;,
+  observation_start = as.Date(&amp;quot;2003-01-02&amp;quot;),
+  frequency = &amp;quot;m&amp;quot;)
+
+#Daily Stock Data is downloaded using quantmod
+DJI &amp;lt;- getSymbols(&amp;quot;DIA&amp;quot;, src = &amp;quot;yahoo&amp;quot;, from = &amp;#39;2003-01-02&amp;#39;, to = &amp;quot;2020-05-31&amp;quot;, auto.assign = TRUE)
+
+DIA_Monthly_Return &amp;lt;- monthlyReturn(DIA)
+
+#Left Join by Date
+DIA_Monthly_Return &amp;lt;- data.frame(DIA_Monthly_Return)
+
+DIA_Monthly_Return$date &amp;lt;- seq(as.Date(&amp;quot;2003/1/1&amp;quot;), as.Date(&amp;quot;2020/5/31&amp;quot;), by = &amp;quot;month&amp;quot;)
+
+HPI$index &amp;lt;- HPI$value
+
+HPI_Stock_Data &amp;lt;- merge(x = DIA_Monthly_Return, y = HPI, by = &amp;quot;date&amp;quot;, all.x = TRUE)
+
+head(HPI_Stock_Data)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##         date monthly.returns  series_id   value   index
+## 1 2003-01-01    -0.039334592 CSUSHPINSA 127.652 127.652
+## 2 2003-02-01    -0.018926250 CSUSHPINSA 128.327 128.327
+## 3 2003-03-01     0.006430488 CSUSHPINSA 129.310 129.310
+## 4 2003-04-01     0.063142082 CSUSHPINSA 130.490 130.490
+## 5 2003-05-01     0.046900718 CSUSHPINSA 131.841 131.841
+## 6 2003-06-01     0.012044215 CSUSHPINSA 133.226 133.226&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;cor.test(HPI_Stock_Data$monthly.returns, HPI_Stock_Data$index)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## 
+##  Pearson&amp;#39;s product-moment correlation
+## 
+## data:  HPI_Stock_Data$monthly.returns and HPI_Stock_Data$index
+## t = -0.44315, df = 207, p-value = 0.6581
+## alternative hypothesis: true correlation is not equal to 0
+## 95 percent confidence interval:
+##  -0.1658081  0.1053686
+## sample estimates:
+##         cor 
+## -0.03078631&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;[Similarly to the two analyses above, this analysis is done to determine if there was a relationship between the DJI and the S&amp;amp;P/Case-Schiller Housing Price Index. The thought behind this was an increased housing price index signaled an improving economy, causing an increase in the price of the Dow Jones Index and in this case an ETF. With a P value above the .05 threshold there is not enough evidence to suggest a relationship exists.]&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;total-gross-domestic-product-map-by-state&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Total Gross Domestic Product Map by State&lt;/h2&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;#https://fred.stlouisfed.org/release?rid=140
+
+#Created list of FRED variables.  Values were divided into x and y groups because for some reason R would not run all of the variables in one group
+x &amp;lt;- list(&amp;quot;CARGSP&amp;quot;,&amp;quot;TXNGSP&amp;quot;, &amp;quot;NYNGSP&amp;quot;,&amp;quot;FLNGSP&amp;quot;,&amp;quot;OHNGSP&amp;quot;, &amp;quot;WANGSP&amp;quot;,&amp;quot;CONGSP&amp;quot;,&amp;quot;MINGSP&amp;quot;,&amp;quot;MANGSP&amp;quot;,&amp;quot;AZNGSP&amp;quot;,&amp;quot;HINGSP&amp;quot;,&amp;quot;PANGSP&amp;quot;, &amp;quot;NJNGSP&amp;quot;,&amp;quot;ILNGSP&amp;quot;,&amp;quot;NCNGSP&amp;quot;,&amp;quot;ALNGSP&amp;quot;,&amp;quot;MONGSP&amp;quot;,&amp;quot;LANGSP&amp;quot;,&amp;quot;WINGSP&amp;quot;,&amp;quot;MNNGSP&amp;quot;,&amp;quot;ORNGSP&amp;quot;,&amp;quot;MSNGSP&amp;quot;,&amp;quot;SCNGSP&amp;quot;,&amp;quot;CTNGSP&amp;quot;,&amp;quot;INNGSP&amp;quot;,&amp;quot;TNNGSP&amp;quot;,&amp;quot;KYNGSP&amp;quot;,&amp;quot;AKNGSP&amp;quot;,&amp;quot;DCNGSP&amp;quot;,&amp;quot;GANGSP&amp;quot;,&amp;quot;VANGSP&amp;quot;,&amp;quot;UTNGSP&amp;quot;,&amp;quot;IANGSP&amp;quot;,&amp;quot;NMNGSP&amp;quot;,&amp;quot;NDNGSP&amp;quot;,&amp;quot;WVNGSP&amp;quot;,&amp;quot;WYNGSP&amp;quot;,&amp;quot;MDNGSP&amp;quot;,&amp;quot;NENGSP&amp;quot;,&amp;quot;MENGSP&amp;quot;,&amp;quot;IDNGSP&amp;quot;,&amp;quot;NVNGSP&amp;quot;,&amp;quot;MTNGSP&amp;quot;,&amp;quot;KSNGSP&amp;quot;,&amp;quot;RINGSP&amp;quot;,&amp;quot;OKNGSP&amp;quot;,&amp;quot;VTNGSP&amp;quot;,&amp;quot;SDNGSP&amp;quot;,&amp;quot;ARNGSP&amp;quot;,&amp;quot;NHNGSP&amp;quot;,&amp;quot;DENGSP&amp;quot;)
+
+
+
+z &amp;lt;- list(&amp;quot;California&amp;quot;, &amp;quot;Texas&amp;quot;, &amp;quot;New York&amp;quot;,&amp;quot;Florida&amp;quot;,&amp;quot;Ohio&amp;quot;, &amp;quot;Washington&amp;quot;, &amp;quot;Colorado&amp;quot;,&amp;quot;Michigan&amp;quot;, &amp;quot;Massachusetts&amp;quot;,&amp;quot;Arizona&amp;quot;,&amp;quot;Hawaii&amp;quot;,&amp;quot;Pennsylvania&amp;quot;,&amp;quot;New Jersey&amp;quot;,&amp;quot;Illinois&amp;quot;,&amp;quot;North Carolina&amp;quot;,&amp;quot;Alabama&amp;quot;,&amp;quot;Missouri&amp;quot;,&amp;quot;Louisiana&amp;quot;,&amp;quot;Wisconsin&amp;quot;,&amp;quot;Minnesota&amp;quot;,&amp;quot;Oregon&amp;quot;,&amp;quot;Mississippi&amp;quot;,&amp;quot;South Carolina&amp;quot;,&amp;quot;Connecticut&amp;quot;,&amp;quot;Indiana&amp;quot;,&amp;quot;Tennessee&amp;quot;,&amp;quot;Kentucky&amp;quot;,&amp;quot;Alaska&amp;quot;, &amp;quot;District of Columbia&amp;quot;,&amp;quot;Georgia&amp;quot;,&amp;quot;Virginia&amp;quot;,&amp;quot;Utah&amp;quot;,&amp;quot;Iowa&amp;quot;,&amp;quot;New Mexico&amp;quot;,&amp;quot;North Dakota&amp;quot;,&amp;quot;West Virginia&amp;quot;,&amp;quot;Wyoming&amp;quot;,&amp;quot;Maryland&amp;quot;,&amp;quot;Nebraska&amp;quot;,&amp;quot;Maine&amp;quot;,&amp;quot;Idaho&amp;quot;,&amp;quot;Nevada&amp;quot;,&amp;quot;Montana&amp;quot;,&amp;quot;Kansas&amp;quot;,&amp;quot;Rhode Island&amp;quot;,&amp;quot;Oklahoma&amp;quot;,&amp;quot;Vermont&amp;quot;,&amp;quot;South Dakota&amp;quot;,&amp;quot;Arkansas&amp;quot;,&amp;quot;New Hampshire&amp;quot;,&amp;quot;Delaware&amp;quot;)
+
+#Loop Designed to run this function and name datasets by the FRED variable.
+for (p in x){
+  
+name &amp;lt;- fredr(series_id = p,
+  observation_start = as.Date(&amp;quot;2003-01-02&amp;quot;),
+  frequency = &amp;quot;a&amp;quot;)
+
+assign(p, name)
+
+}
+
+#Using the rbind function to combine all rows together for a full dataset with all states and years in one table
+GDP_ALL &amp;lt;- rbind(CARGSP$value,TXNGSP$value, NYNGSP$value,FLNGSP$value,OHNGSP$value, WANGSP$value,CONGSP$value,MINGSP$value,MANGSP$value,AZNGSP$value,HINGSP$value,PANGSP$value, NJNGSP$value,ILNGSP$value,NCNGSP$value,ALNGSP$value,MONGSP$value,LANGSP$value,WINGSP$value, MNNGSP$value,ORNGSP$value,MSNGSP$value,SCNGSP$value,CTNGSP$value,INNGSP$value,TNNGSP$value,KYNGSP$value,AKNGSP$value,DCNGSP$value,GANGSP$value,VANGSP$value,UTNGSP$value,IANGSP$value,NMNGSP$value,NDNGSP$value,WVNGSP$value,WYNGSP$value,MDNGSP$value,NENGSP$value,MENGSP$value,IDNGSP$value,NVNGSP$value,MTNGSP$value,KSNGSP$value,RINGSP$value,OKNGSP$value,VTNGSP$value,SDNGSP$value,ARNGSP$value,NHNGSP$value,DENGSP$value)
+
+value = c(&amp;quot;California&amp;quot;, &amp;quot;Texas&amp;quot;, &amp;quot;New York&amp;quot;,&amp;quot;Florida&amp;quot;,&amp;quot;Ohio&amp;quot;, &amp;quot;Washington&amp;quot;, &amp;quot;Colorado&amp;quot;,&amp;quot;Michigan&amp;quot;, &amp;quot;Massachusetts&amp;quot;,&amp;quot;Arizona&amp;quot;,&amp;quot;Hawaii&amp;quot;,&amp;quot;Pennsylvania&amp;quot;,&amp;quot;New Jersey&amp;quot;,&amp;quot;Illinois&amp;quot;,&amp;quot;North Carolina&amp;quot;,&amp;quot;Alabama&amp;quot;,&amp;quot;Missouri&amp;quot;,&amp;quot;Louisiana&amp;quot;,&amp;quot;Wisconsin&amp;quot;,&amp;quot;Minnesota&amp;quot;,&amp;quot;Oregon&amp;quot;,&amp;quot;Mississippi&amp;quot;,&amp;quot;South Carolina&amp;quot;,&amp;quot;Connecticut&amp;quot;,&amp;quot;Indiana&amp;quot;,&amp;quot;Tennessee&amp;quot;,&amp;quot;Kentucky&amp;quot;,&amp;quot;Alaska&amp;quot;, &amp;quot;District of Columbia&amp;quot;,&amp;quot;Georgia&amp;quot;,&amp;quot;Virginia&amp;quot;,&amp;quot;Utah&amp;quot;,&amp;quot;Iowa&amp;quot;,&amp;quot;New Mexico&amp;quot;,&amp;quot;North Dakota&amp;quot;,&amp;quot;West Virginia&amp;quot;,&amp;quot;Wyoming&amp;quot;,&amp;quot;Maryland&amp;quot;,&amp;quot;Nebraska&amp;quot;,&amp;quot;Maine&amp;quot;,&amp;quot;Idaho&amp;quot;,&amp;quot;Nevada&amp;quot;,&amp;quot;Montana&amp;quot;,&amp;quot;Kansas&amp;quot;,&amp;quot;Rhode Island&amp;quot;,&amp;quot;Oklahoma&amp;quot;,&amp;quot;Vermont&amp;quot;,&amp;quot;South Dakota&amp;quot;,&amp;quot;Arkansas&amp;quot;,&amp;quot;New Hampshire&amp;quot;,&amp;quot;Delaware&amp;quot;)
+
+#Changing row names to the states listed above
+row.names(GDP_ALL) &amp;lt;- value
+
+#column names are changed to years 2003-2019
+ colnames(GDP_ALL) &amp;lt;- c(&amp;quot;2003&amp;quot;, &amp;quot;2004&amp;quot;, &amp;quot;2005&amp;quot;, &amp;quot;2006&amp;quot;, &amp;quot;2007&amp;quot;, &amp;quot;2008&amp;quot;, &amp;quot;2009&amp;quot;, &amp;quot;2010&amp;quot;, &amp;quot;2011&amp;quot;, &amp;quot;2012&amp;quot;, &amp;quot;2013&amp;quot;,
+&amp;quot;2014&amp;quot;, &amp;quot;2015&amp;quot;, &amp;quot;2016&amp;quot;, &amp;quot;2017&amp;quot;, &amp;quot;2018&amp;quot;, &amp;quot;2019&amp;quot;)
+
+
+#Part 1: Map of States
+ 
+ #To create each map, new datasets were created for each year, variables are renamed and columns are erased.  This was done 17 times for years 2003 to 2019
+ 
+ ####### 2003
+Year2003 &amp;lt;- data.frame(GDP_ALL[,1])
+
+Year2003$year &amp;lt;- 2003
+
+Year2003$GDP &amp;lt;- Year2003$GDP_ALL...1.
+
+Year2003$state &amp;lt;- c(&amp;quot;california&amp;quot;, &amp;quot;texas&amp;quot;, &amp;quot;new york&amp;quot;,&amp;quot;florida&amp;quot;,&amp;quot;ohio&amp;quot;, &amp;quot;washington&amp;quot;, &amp;quot;colorado&amp;quot;,&amp;quot;michigan&amp;quot;, &amp;quot;massachusetts&amp;quot;,&amp;quot;arizona&amp;quot;,&amp;quot;hawaii&amp;quot;,&amp;quot;pennsylvania&amp;quot;,&amp;quot;new jersey&amp;quot;,&amp;quot;illinois&amp;quot;,&amp;quot;north carolina&amp;quot;,&amp;quot;alabama&amp;quot;,&amp;quot;missouri&amp;quot;,&amp;quot;louisiana&amp;quot;,&amp;quot;wisconsin&amp;quot;,&amp;quot;minnesota&amp;quot;,&amp;quot;oregon&amp;quot;,&amp;quot;mississippi&amp;quot;,&amp;quot;south carolina&amp;quot;,&amp;quot;connecticut&amp;quot;,&amp;quot;indiana&amp;quot;,&amp;quot;tennessee&amp;quot;,&amp;quot;kentucky&amp;quot;,&amp;quot;alaska&amp;quot;, &amp;quot;district of columbia&amp;quot;,&amp;quot;georgia&amp;quot;,&amp;quot;virginia&amp;quot;,&amp;quot;utah&amp;quot;,&amp;quot;iowa&amp;quot;,&amp;quot;new mexico&amp;quot;,&amp;quot;north dakota&amp;quot;,&amp;quot;west virginia&amp;quot;,&amp;quot;wyoming&amp;quot;,&amp;quot;maryland&amp;quot;,&amp;quot;nebraska&amp;quot;,&amp;quot;maine&amp;quot;,&amp;quot;idaho&amp;quot;,&amp;quot;nevada&amp;quot;,&amp;quot;montana&amp;quot;,&amp;quot;kansas&amp;quot;,&amp;quot;rhode island&amp;quot;,&amp;quot;oklahoma&amp;quot;,&amp;quot;vermont&amp;quot;,&amp;quot;south dakota&amp;quot;,&amp;quot;arkansas&amp;quot;,&amp;quot;new hampshire&amp;quot;,&amp;quot;delaware&amp;quot;)
+
+Year2003 = select(Year2003, -c(&amp;quot;GDP_ALL...1.&amp;quot;))
+
+####### 2004
+Year2004 &amp;lt;- data.frame(GDP_ALL[,2])
+
+Year2004$year &amp;lt;- 2004
+
+Year2004$GDP &amp;lt;- Year2004[,1]
+
+Year2004$state &amp;lt;- c(&amp;quot;california&amp;quot;, &amp;quot;texas&amp;quot;, &amp;quot;new york&amp;quot;,&amp;quot;florida&amp;quot;,&amp;quot;ohio&amp;quot;, &amp;quot;washington&amp;quot;, &amp;quot;colorado&amp;quot;,&amp;quot;michigan&amp;quot;, &amp;quot;massachusetts&amp;quot;,&amp;quot;arizona&amp;quot;,&amp;quot;hawaii&amp;quot;,&amp;quot;pennsylvania&amp;quot;,&amp;quot;new jersey&amp;quot;,&amp;quot;illinois&amp;quot;,&amp;quot;north carolina&amp;quot;,&amp;quot;alabama&amp;quot;,&amp;quot;missouri&amp;quot;,&amp;quot;louisiana&amp;quot;,&amp;quot;wisconsin&amp;quot;,&amp;quot;minnesota&amp;quot;,&amp;quot;oregon&amp;quot;,&amp;quot;mississippi&amp;quot;,&amp;quot;south carolina&amp;quot;,&amp;quot;connecticut&amp;quot;,&amp;quot;indiana&amp;quot;,&amp;quot;tennessee&amp;quot;,&amp;quot;kentucky&amp;quot;,&amp;quot;alaska&amp;quot;, &amp;quot;district of columbia&amp;quot;,&amp;quot;georgia&amp;quot;,&amp;quot;virginia&amp;quot;,&amp;quot;utah&amp;quot;,&amp;quot;iowa&amp;quot;,&amp;quot;new mexico&amp;quot;,&amp;quot;north dakota&amp;quot;,&amp;quot;west virginia&amp;quot;,&amp;quot;wyoming&amp;quot;,&amp;quot;maryland&amp;quot;,&amp;quot;nebraska&amp;quot;,&amp;quot;maine&amp;quot;,&amp;quot;idaho&amp;quot;,&amp;quot;nevada&amp;quot;,&amp;quot;montana&amp;quot;,&amp;quot;kansas&amp;quot;,&amp;quot;rhode island&amp;quot;,&amp;quot;oklahoma&amp;quot;,&amp;quot;vermont&amp;quot;,&amp;quot;south dakota&amp;quot;,&amp;quot;arkansas&amp;quot;,&amp;quot;new hampshire&amp;quot;,&amp;quot;delaware&amp;quot;)
+
+Year2004 = Year2004[,-1]
+
+
+######### 2005
+Year2005 &amp;lt;- data.frame(GDP_ALL[,3])
+
+Year2005$year &amp;lt;- 2005
+
+Year2005$GDP &amp;lt;- Year2005[,1]
+
+Year2005$state &amp;lt;- c(&amp;quot;california&amp;quot;, &amp;quot;texas&amp;quot;, &amp;quot;new york&amp;quot;,&amp;quot;florida&amp;quot;,&amp;quot;ohio&amp;quot;, &amp;quot;washington&amp;quot;, &amp;quot;colorado&amp;quot;,&amp;quot;michigan&amp;quot;, &amp;quot;massachusetts&amp;quot;,&amp;quot;arizona&amp;quot;,&amp;quot;hawaii&amp;quot;,&amp;quot;pennsylvania&amp;quot;,&amp;quot;new jersey&amp;quot;,&amp;quot;illinois&amp;quot;,&amp;quot;north carolina&amp;quot;,&amp;quot;alabama&amp;quot;,&amp;quot;missouri&amp;quot;,&amp;quot;louisiana&amp;quot;,&amp;quot;wisconsin&amp;quot;,&amp;quot;minnesota&amp;quot;,&amp;quot;oregon&amp;quot;,&amp;quot;mississippi&amp;quot;,&amp;quot;south carolina&amp;quot;,&amp;quot;connecticut&amp;quot;,&amp;quot;indiana&amp;quot;,&amp;quot;tennessee&amp;quot;,&amp;quot;kentucky&amp;quot;,&amp;quot;alaska&amp;quot;, &amp;quot;district of columbia&amp;quot;,&amp;quot;georgia&amp;quot;,&amp;quot;virginia&amp;quot;,&amp;quot;utah&amp;quot;,&amp;quot;iowa&amp;quot;,&amp;quot;new mexico&amp;quot;,&amp;quot;north dakota&amp;quot;,&amp;quot;west virginia&amp;quot;,&amp;quot;wyoming&amp;quot;,&amp;quot;maryland&amp;quot;,&amp;quot;nebraska&amp;quot;,&amp;quot;maine&amp;quot;,&amp;quot;idaho&amp;quot;,&amp;quot;nevada&amp;quot;,&amp;quot;montana&amp;quot;,&amp;quot;kansas&amp;quot;,&amp;quot;rhode island&amp;quot;,&amp;quot;oklahoma&amp;quot;,&amp;quot;vermont&amp;quot;,&amp;quot;south dakota&amp;quot;,&amp;quot;arkansas&amp;quot;,&amp;quot;new hampshire&amp;quot;,&amp;quot;delaware&amp;quot;)
+
+Year2005 = Year2005[,-1]
+
+#########  2006
+Year2006 &amp;lt;- data.frame(GDP_ALL[,4])
+
+Year2006$year &amp;lt;- 2006
+
+Year2006$GDP &amp;lt;- Year2006[,1]
+
+Year2006$state &amp;lt;- c(&amp;quot;california&amp;quot;, &amp;quot;texas&amp;quot;, &amp;quot;new york&amp;quot;,&amp;quot;florida&amp;quot;,&amp;quot;ohio&amp;quot;, &amp;quot;washington&amp;quot;, &amp;quot;colorado&amp;quot;,&amp;quot;michigan&amp;quot;, &amp;quot;massachusetts&amp;quot;,&amp;quot;arizona&amp;quot;,&amp;quot;hawaii&amp;quot;,&amp;quot;pennsylvania&amp;quot;,&amp;quot;new jersey&amp;quot;,&amp;quot;illinois&amp;quot;,&amp;quot;north carolina&amp;quot;,&amp;quot;alabama&amp;quot;,&amp;quot;missouri&amp;quot;,&amp;quot;louisiana&amp;quot;,&amp;quot;wisconsin&amp;quot;,&amp;quot;minnesota&amp;quot;,&amp;quot;oregon&amp;quot;,&amp;quot;mississippi&amp;quot;,&amp;quot;south carolina&amp;quot;,&amp;quot;connecticut&amp;quot;,&amp;quot;indiana&amp;quot;,&amp;quot;tennessee&amp;quot;,&amp;quot;kentucky&amp;quot;,&amp;quot;alaska&amp;quot;, &amp;quot;district of columbia&amp;quot;,&amp;quot;georgia&amp;quot;,&amp;quot;virginia&amp;quot;,&amp;quot;utah&amp;quot;,&amp;quot;iowa&amp;quot;,&amp;quot;new mexico&amp;quot;,&amp;quot;north dakota&amp;quot;,&amp;quot;west virginia&amp;quot;,&amp;quot;wyoming&amp;quot;,&amp;quot;maryland&amp;quot;,&amp;quot;nebraska&amp;quot;,&amp;quot;maine&amp;quot;,&amp;quot;idaho&amp;quot;,&amp;quot;nevada&amp;quot;,&amp;quot;montana&amp;quot;,&amp;quot;kansas&amp;quot;,&amp;quot;rhode island&amp;quot;,&amp;quot;oklahoma&amp;quot;,&amp;quot;vermont&amp;quot;,&amp;quot;south dakota&amp;quot;,&amp;quot;arkansas&amp;quot;,&amp;quot;new hampshire&amp;quot;,&amp;quot;delaware&amp;quot;)
+
+Year2006 = Year2006[,-1]
+
+#########   2007
+Year2007 &amp;lt;- data.frame(GDP_ALL[,5])
+
+Year2007$year &amp;lt;- 2007
+
+Year2007$GDP &amp;lt;- Year2007[,1]
+
+Year2007$state &amp;lt;- c(&amp;quot;california&amp;quot;, &amp;quot;texas&amp;quot;, &amp;quot;new york&amp;quot;,&amp;quot;florida&amp;quot;,&amp;quot;ohio&amp;quot;, &amp;quot;washington&amp;quot;, &amp;quot;colorado&amp;quot;,&amp;quot;michigan&amp;quot;, &amp;quot;massachusetts&amp;quot;,&amp;quot;arizona&amp;quot;,&amp;quot;hawaii&amp;quot;,&amp;quot;pennsylvania&amp;quot;,&amp;quot;new jersey&amp;quot;,&amp;quot;illinois&amp;quot;,&amp;quot;north carolina&amp;quot;,&amp;quot;alabama&amp;quot;,&amp;quot;missouri&amp;quot;,&amp;quot;louisiana&amp;quot;,&amp;quot;wisconsin&amp;quot;,&amp;quot;minnesota&amp;quot;,&amp;quot;oregon&amp;quot;,&amp;quot;mississippi&amp;quot;,&amp;quot;south carolina&amp;quot;,&amp;quot;connecticut&amp;quot;,&amp;quot;indiana&amp;quot;,&amp;quot;tennessee&amp;quot;,&amp;quot;kentucky&amp;quot;,&amp;quot;alaska&amp;quot;, &amp;quot;district of columbia&amp;quot;,&amp;quot;georgia&amp;quot;,&amp;quot;virginia&amp;quot;,&amp;quot;utah&amp;quot;,&amp;quot;iowa&amp;quot;,&amp;quot;new mexico&amp;quot;,&amp;quot;north dakota&amp;quot;,&amp;quot;west virginia&amp;quot;,&amp;quot;wyoming&amp;quot;,&amp;quot;maryland&amp;quot;,&amp;quot;nebraska&amp;quot;,&amp;quot;maine&amp;quot;,&amp;quot;idaho&amp;quot;,&amp;quot;nevada&amp;quot;,&amp;quot;montana&amp;quot;,&amp;quot;kansas&amp;quot;,&amp;quot;rhode island&amp;quot;,&amp;quot;oklahoma&amp;quot;,&amp;quot;vermont&amp;quot;,&amp;quot;south dakota&amp;quot;,&amp;quot;arkansas&amp;quot;,&amp;quot;new hampshire&amp;quot;,&amp;quot;delaware&amp;quot;)
+
+Year2007 = Year2007[,-1]
+
+#########   2008
+Year2008 &amp;lt;- data.frame(GDP_ALL[,6])
+
+Year2008$year &amp;lt;- 2008
+
+Year2008$GDP &amp;lt;- Year2008[,1]
+
+Year2008$state &amp;lt;- c(&amp;quot;california&amp;quot;, &amp;quot;texas&amp;quot;, &amp;quot;new york&amp;quot;,&amp;quot;florida&amp;quot;,&amp;quot;ohio&amp;quot;, &amp;quot;washington&amp;quot;, &amp;quot;colorado&amp;quot;,&amp;quot;michigan&amp;quot;, &amp;quot;massachusetts&amp;quot;,&amp;quot;arizona&amp;quot;,&amp;quot;hawaii&amp;quot;,&amp;quot;pennsylvania&amp;quot;,&amp;quot;new jersey&amp;quot;,&amp;quot;illinois&amp;quot;,&amp;quot;north carolina&amp;quot;,&amp;quot;alabama&amp;quot;,&amp;quot;missouri&amp;quot;,&amp;quot;louisiana&amp;quot;,&amp;quot;wisconsin&amp;quot;,&amp;quot;minnesota&amp;quot;,&amp;quot;oregon&amp;quot;,&amp;quot;mississippi&amp;quot;,&amp;quot;south carolina&amp;quot;,&amp;quot;connecticut&amp;quot;,&amp;quot;indiana&amp;quot;,&amp;quot;tennessee&amp;quot;,&amp;quot;kentucky&amp;quot;,&amp;quot;alaska&amp;quot;, &amp;quot;district of columbia&amp;quot;,&amp;quot;georgia&amp;quot;,&amp;quot;virginia&amp;quot;,&amp;quot;utah&amp;quot;,&amp;quot;iowa&amp;quot;,&amp;quot;new mexico&amp;quot;,&amp;quot;north dakota&amp;quot;,&amp;quot;west virginia&amp;quot;,&amp;quot;wyoming&amp;quot;,&amp;quot;maryland&amp;quot;,&amp;quot;nebraska&amp;quot;,&amp;quot;maine&amp;quot;,&amp;quot;idaho&amp;quot;,&amp;quot;nevada&amp;quot;,&amp;quot;montana&amp;quot;,&amp;quot;kansas&amp;quot;,&amp;quot;rhode island&amp;quot;,&amp;quot;oklahoma&amp;quot;,&amp;quot;vermont&amp;quot;,&amp;quot;south dakota&amp;quot;,&amp;quot;arkansas&amp;quot;,&amp;quot;new hampshire&amp;quot;,&amp;quot;delaware&amp;quot;)
+
+Year2008 = Year2008[,-1]
+
+#########   2009
+Year2009 &amp;lt;- data.frame(GDP_ALL[,7])
+
+Year2009$year &amp;lt;- 2009
+
+Year2009$GDP &amp;lt;- Year2009[,1]
+
+Year2009$state &amp;lt;- c(&amp;quot;california&amp;quot;, &amp;quot;texas&amp;quot;, &amp;quot;new york&amp;quot;,&amp;quot;florida&amp;quot;,&amp;quot;ohio&amp;quot;, &amp;quot;washington&amp;quot;, &amp;quot;colorado&amp;quot;,&amp;quot;michigan&amp;quot;, &amp;quot;massachusetts&amp;quot;,&amp;quot;arizona&amp;quot;,&amp;quot;hawaii&amp;quot;,&amp;quot;pennsylvania&amp;quot;,&amp;quot;new jersey&amp;quot;,&amp;quot;illinois&amp;quot;,&amp;quot;north carolina&amp;quot;,&amp;quot;alabama&amp;quot;,&amp;quot;missouri&amp;quot;,&amp;quot;louisiana&amp;quot;,&amp;quot;wisconsin&amp;quot;,&amp;quot;minnesota&amp;quot;,&amp;quot;oregon&amp;quot;,&amp;quot;mississippi&amp;quot;,&amp;quot;south carolina&amp;quot;,&amp;quot;connecticut&amp;quot;,&amp;quot;indiana&amp;quot;,&amp;quot;tennessee&amp;quot;,&amp;quot;kentucky&amp;quot;,&amp;quot;alaska&amp;quot;, &amp;quot;district of columbia&amp;quot;,&amp;quot;georgia&amp;quot;,&amp;quot;virginia&amp;quot;,&amp;quot;utah&amp;quot;,&amp;quot;iowa&amp;quot;,&amp;quot;new mexico&amp;quot;,&amp;quot;north dakota&amp;quot;,&amp;quot;west virginia&amp;quot;,&amp;quot;wyoming&amp;quot;,&amp;quot;maryland&amp;quot;,&amp;quot;nebraska&amp;quot;,&amp;quot;maine&amp;quot;,&amp;quot;idaho&amp;quot;,&amp;quot;nevada&amp;quot;,&amp;quot;montana&amp;quot;,&amp;quot;kansas&amp;quot;,&amp;quot;rhode island&amp;quot;,&amp;quot;oklahoma&amp;quot;,&amp;quot;vermont&amp;quot;,&amp;quot;south dakota&amp;quot;,&amp;quot;arkansas&amp;quot;,&amp;quot;new hampshire&amp;quot;,&amp;quot;delaware&amp;quot;)
+
+Year2009 = Year2009[,-1]
+
+#########   2010
+Year2010 &amp;lt;- data.frame(GDP_ALL[,8])
+
+Year2010$year &amp;lt;- 2010
+
+Year2010$GDP &amp;lt;- Year2010[,1]
+
+Year2010$state &amp;lt;- c(&amp;quot;california&amp;quot;, &amp;quot;texas&amp;quot;, &amp;quot;new york&amp;quot;,&amp;quot;florida&amp;quot;,&amp;quot;ohio&amp;quot;, &amp;quot;washington&amp;quot;, &amp;quot;colorado&amp;quot;,&amp;quot;michigan&amp;quot;, &amp;quot;massachusetts&amp;quot;,&amp;quot;arizona&amp;quot;,&amp;quot;hawaii&amp;quot;,&amp;quot;pennsylvania&amp;quot;,&amp;quot;new jersey&amp;quot;,&amp;quot;illinois&amp;quot;,&amp;quot;north carolina&amp;quot;,&amp;quot;alabama&amp;quot;,&amp;quot;missouri&amp;quot;,&amp;quot;louisiana&amp;quot;,&amp;quot;wisconsin&amp;quot;,&amp;quot;minnesota&amp;quot;,&amp;quot;oregon&amp;quot;,&amp;quot;mississippi&amp;quot;,&amp;quot;south carolina&amp;quot;,&amp;quot;connecticut&amp;quot;,&amp;quot;indiana&amp;quot;,&amp;quot;tennessee&amp;quot;,&amp;quot;kentucky&amp;quot;,&amp;quot;alaska&amp;quot;, &amp;quot;district of columbia&amp;quot;,&amp;quot;georgia&amp;quot;,&amp;quot;virginia&amp;quot;,&amp;quot;utah&amp;quot;,&amp;quot;iowa&amp;quot;,&amp;quot;new mexico&amp;quot;,&amp;quot;north dakota&amp;quot;,&amp;quot;west virginia&amp;quot;,&amp;quot;wyoming&amp;quot;,&amp;quot;maryland&amp;quot;,&amp;quot;nebraska&amp;quot;,&amp;quot;maine&amp;quot;,&amp;quot;idaho&amp;quot;,&amp;quot;nevada&amp;quot;,&amp;quot;montana&amp;quot;,&amp;quot;kansas&amp;quot;,&amp;quot;rhode island&amp;quot;,&amp;quot;oklahoma&amp;quot;,&amp;quot;vermont&amp;quot;,&amp;quot;south dakota&amp;quot;,&amp;quot;arkansas&amp;quot;,&amp;quot;new hampshire&amp;quot;,&amp;quot;delaware&amp;quot;)
+
+Year2010 = Year2010[,-1]
+
+
+#########   2011
+Year2011 &amp;lt;- data.frame(GDP_ALL[,9])
+
+Year2011$year &amp;lt;- 2011
+
+Year2011$GDP &amp;lt;- Year2011[,1]
+
+Year2011$state &amp;lt;- c(&amp;quot;california&amp;quot;, &amp;quot;texas&amp;quot;, &amp;quot;new york&amp;quot;,&amp;quot;florida&amp;quot;,&amp;quot;ohio&amp;quot;, &amp;quot;washington&amp;quot;, &amp;quot;colorado&amp;quot;,&amp;quot;michigan&amp;quot;, &amp;quot;massachusetts&amp;quot;,&amp;quot;arizona&amp;quot;,&amp;quot;hawaii&amp;quot;,&amp;quot;pennsylvania&amp;quot;,&amp;quot;new jersey&amp;quot;,&amp;quot;illinois&amp;quot;,&amp;quot;north carolina&amp;quot;,&amp;quot;alabama&amp;quot;,&amp;quot;missouri&amp;quot;,&amp;quot;louisiana&amp;quot;,&amp;quot;wisconsin&amp;quot;,&amp;quot;minnesota&amp;quot;,&amp;quot;oregon&amp;quot;,&amp;quot;mississippi&amp;quot;,&amp;quot;south carolina&amp;quot;,&amp;quot;connecticut&amp;quot;,&amp;quot;indiana&amp;quot;,&amp;quot;tennessee&amp;quot;,&amp;quot;kentucky&amp;quot;,&amp;quot;alaska&amp;quot;, &amp;quot;district of columbia&amp;quot;,&amp;quot;georgia&amp;quot;,&amp;quot;virginia&amp;quot;,&amp;quot;utah&amp;quot;,&amp;quot;iowa&amp;quot;,&amp;quot;new mexico&amp;quot;,&amp;quot;north dakota&amp;quot;,&amp;quot;west virginia&amp;quot;,&amp;quot;wyoming&amp;quot;,&amp;quot;maryland&amp;quot;,&amp;quot;nebraska&amp;quot;,&amp;quot;maine&amp;quot;,&amp;quot;idaho&amp;quot;,&amp;quot;nevada&amp;quot;,&amp;quot;montana&amp;quot;,&amp;quot;kansas&amp;quot;,&amp;quot;rhode island&amp;quot;,&amp;quot;oklahoma&amp;quot;,&amp;quot;vermont&amp;quot;,&amp;quot;south dakota&amp;quot;,&amp;quot;arkansas&amp;quot;,&amp;quot;new hampshire&amp;quot;,&amp;quot;delaware&amp;quot;)
+
+Year2011 = Year2011[,-1]
+
+#########   2012
+Year2012 &amp;lt;- data.frame(GDP_ALL[,10])
+
+Year2012$year &amp;lt;- 2012
+
+Year2012$GDP &amp;lt;- Year2012[,1]
+
+Year2012$state &amp;lt;- c(&amp;quot;california&amp;quot;, &amp;quot;texas&amp;quot;, &amp;quot;new york&amp;quot;,&amp;quot;florida&amp;quot;,&amp;quot;ohio&amp;quot;, &amp;quot;washington&amp;quot;, &amp;quot;colorado&amp;quot;,&amp;quot;michigan&amp;quot;, &amp;quot;massachusetts&amp;quot;,&amp;quot;arizona&amp;quot;,&amp;quot;hawaii&amp;quot;,&amp;quot;pennsylvania&amp;quot;,&amp;quot;new jersey&amp;quot;,&amp;quot;illinois&amp;quot;,&amp;quot;north carolina&amp;quot;,&amp;quot;alabama&amp;quot;,&amp;quot;missouri&amp;quot;,&amp;quot;louisiana&amp;quot;,&amp;quot;wisconsin&amp;quot;,&amp;quot;minnesota&amp;quot;,&amp;quot;oregon&amp;quot;,&amp;quot;mississippi&amp;quot;,&amp;quot;south carolina&amp;quot;,&amp;quot;connecticut&amp;quot;,&amp;quot;indiana&amp;quot;,&amp;quot;tennessee&amp;quot;,&amp;quot;kentucky&amp;quot;,&amp;quot;alaska&amp;quot;, &amp;quot;district of columbia&amp;quot;,&amp;quot;georgia&amp;quot;,&amp;quot;virginia&amp;quot;,&amp;quot;utah&amp;quot;,&amp;quot;iowa&amp;quot;,&amp;quot;new mexico&amp;quot;,&amp;quot;north dakota&amp;quot;,&amp;quot;west virginia&amp;quot;,&amp;quot;wyoming&amp;quot;,&amp;quot;maryland&amp;quot;,&amp;quot;nebraska&amp;quot;,&amp;quot;maine&amp;quot;,&amp;quot;idaho&amp;quot;,&amp;quot;nevada&amp;quot;,&amp;quot;montana&amp;quot;,&amp;quot;kansas&amp;quot;,&amp;quot;rhode island&amp;quot;,&amp;quot;oklahoma&amp;quot;,&amp;quot;vermont&amp;quot;,&amp;quot;south dakota&amp;quot;,&amp;quot;arkansas&amp;quot;,&amp;quot;new hampshire&amp;quot;,&amp;quot;delaware&amp;quot;)
+
+Year2012 = Year2012[,-1]
+
+#########   2013
+Year2013 &amp;lt;- data.frame(GDP_ALL[,11])
+
+Year2013$year &amp;lt;- 2013
+
+Year2013$GDP &amp;lt;- Year2013[,1]
+
+Year2013$state &amp;lt;- c(&amp;quot;california&amp;quot;, &amp;quot;texas&amp;quot;, &amp;quot;new york&amp;quot;,&amp;quot;florida&amp;quot;,&amp;quot;ohio&amp;quot;, &amp;quot;washington&amp;quot;, &amp;quot;colorado&amp;quot;,&amp;quot;michigan&amp;quot;, &amp;quot;massachusetts&amp;quot;,&amp;quot;arizona&amp;quot;,&amp;quot;hawaii&amp;quot;,&amp;quot;pennsylvania&amp;quot;,&amp;quot;new jersey&amp;quot;,&amp;quot;illinois&amp;quot;,&amp;quot;north carolina&amp;quot;,&amp;quot;alabama&amp;quot;,&amp;quot;missouri&amp;quot;,&amp;quot;louisiana&amp;quot;,&amp;quot;wisconsin&amp;quot;,&amp;quot;minnesota&amp;quot;,&amp;quot;oregon&amp;quot;,&amp;quot;mississippi&amp;quot;,&amp;quot;south carolina&amp;quot;,&amp;quot;connecticut&amp;quot;,&amp;quot;indiana&amp;quot;,&amp;quot;tennessee&amp;quot;,&amp;quot;kentucky&amp;quot;,&amp;quot;alaska&amp;quot;, &amp;quot;district of columbia&amp;quot;,&amp;quot;georgia&amp;quot;,&amp;quot;virginia&amp;quot;,&amp;quot;utah&amp;quot;,&amp;quot;iowa&amp;quot;,&amp;quot;new mexico&amp;quot;,&amp;quot;north dakota&amp;quot;,&amp;quot;west virginia&amp;quot;,&amp;quot;wyoming&amp;quot;,&amp;quot;maryland&amp;quot;,&amp;quot;nebraska&amp;quot;,&amp;quot;maine&amp;quot;,&amp;quot;idaho&amp;quot;,&amp;quot;nevada&amp;quot;,&amp;quot;montana&amp;quot;,&amp;quot;kansas&amp;quot;,&amp;quot;rhode island&amp;quot;,&amp;quot;oklahoma&amp;quot;,&amp;quot;vermont&amp;quot;,&amp;quot;south dakota&amp;quot;,&amp;quot;arkansas&amp;quot;,&amp;quot;new hampshire&amp;quot;,&amp;quot;delaware&amp;quot;)
+
+Year2013 = Year2013[,-1]
+
+#########    2014
+Year2014 &amp;lt;- data.frame(GDP_ALL[,12])
+
+Year2014$year &amp;lt;- 2014
+
+Year2014$GDP &amp;lt;- Year2014[,1]
+
+Year2014$state &amp;lt;- c(&amp;quot;california&amp;quot;, &amp;quot;texas&amp;quot;, &amp;quot;new york&amp;quot;,&amp;quot;florida&amp;quot;,&amp;quot;ohio&amp;quot;, &amp;quot;washington&amp;quot;, &amp;quot;colorado&amp;quot;,&amp;quot;michigan&amp;quot;, &amp;quot;massachusetts&amp;quot;,&amp;quot;arizona&amp;quot;,&amp;quot;hawaii&amp;quot;,&amp;quot;pennsylvania&amp;quot;,&amp;quot;new jersey&amp;quot;,&amp;quot;illinois&amp;quot;,&amp;quot;north carolina&amp;quot;,&amp;quot;alabama&amp;quot;,&amp;quot;missouri&amp;quot;,&amp;quot;louisiana&amp;quot;,&amp;quot;wisconsin&amp;quot;,&amp;quot;minnesota&amp;quot;,&amp;quot;oregon&amp;quot;,&amp;quot;mississippi&amp;quot;,&amp;quot;south carolina&amp;quot;,&amp;quot;connecticut&amp;quot;,&amp;quot;indiana&amp;quot;,&amp;quot;tennessee&amp;quot;,&amp;quot;kentucky&amp;quot;,&amp;quot;alaska&amp;quot;, &amp;quot;district of columbia&amp;quot;,&amp;quot;georgia&amp;quot;,&amp;quot;virginia&amp;quot;,&amp;quot;utah&amp;quot;,&amp;quot;iowa&amp;quot;,&amp;quot;new mexico&amp;quot;,&amp;quot;north dakota&amp;quot;,&amp;quot;west virginia&amp;quot;,&amp;quot;wyoming&amp;quot;,&amp;quot;maryland&amp;quot;,&amp;quot;nebraska&amp;quot;,&amp;quot;maine&amp;quot;,&amp;quot;idaho&amp;quot;,&amp;quot;nevada&amp;quot;,&amp;quot;montana&amp;quot;,&amp;quot;kansas&amp;quot;,&amp;quot;rhode island&amp;quot;,&amp;quot;oklahoma&amp;quot;,&amp;quot;vermont&amp;quot;,&amp;quot;south dakota&amp;quot;,&amp;quot;arkansas&amp;quot;,&amp;quot;new hampshire&amp;quot;,&amp;quot;delaware&amp;quot;)
+
+Year2014 = Year2014[,-1]
+
+#########    2015
+Year2015 &amp;lt;- data.frame(GDP_ALL[,13])
+
+Year2015$year &amp;lt;- 2015
+
+Year2015$GDP &amp;lt;- Year2015[,1]
+
+Year2015$state &amp;lt;- c(&amp;quot;california&amp;quot;, &amp;quot;texas&amp;quot;, &amp;quot;new york&amp;quot;,&amp;quot;florida&amp;quot;,&amp;quot;ohio&amp;quot;, &amp;quot;washington&amp;quot;, &amp;quot;colorado&amp;quot;,&amp;quot;michigan&amp;quot;, &amp;quot;massachusetts&amp;quot;,&amp;quot;arizona&amp;quot;,&amp;quot;hawaii&amp;quot;,&amp;quot;pennsylvania&amp;quot;,&amp;quot;new jersey&amp;quot;,&amp;quot;illinois&amp;quot;,&amp;quot;north carolina&amp;quot;,&amp;quot;alabama&amp;quot;,&amp;quot;missouri&amp;quot;,&amp;quot;louisiana&amp;quot;,&amp;quot;wisconsin&amp;quot;,&amp;quot;minnesota&amp;quot;,&amp;quot;oregon&amp;quot;,&amp;quot;mississippi&amp;quot;,&amp;quot;south carolina&amp;quot;,&amp;quot;connecticut&amp;quot;,&amp;quot;indiana&amp;quot;,&amp;quot;tennessee&amp;quot;,&amp;quot;kentucky&amp;quot;,&amp;quot;alaska&amp;quot;, &amp;quot;district of columbia&amp;quot;,&amp;quot;georgia&amp;quot;,&amp;quot;virginia&amp;quot;,&amp;quot;utah&amp;quot;,&amp;quot;iowa&amp;quot;,&amp;quot;new mexico&amp;quot;,&amp;quot;north dakota&amp;quot;,&amp;quot;west virginia&amp;quot;,&amp;quot;wyoming&amp;quot;,&amp;quot;maryland&amp;quot;,&amp;quot;nebraska&amp;quot;,&amp;quot;maine&amp;quot;,&amp;quot;idaho&amp;quot;,&amp;quot;nevada&amp;quot;,&amp;quot;montana&amp;quot;,&amp;quot;kansas&amp;quot;,&amp;quot;rhode island&amp;quot;,&amp;quot;oklahoma&amp;quot;,&amp;quot;vermont&amp;quot;,&amp;quot;south dakota&amp;quot;,&amp;quot;arkansas&amp;quot;,&amp;quot;new hampshire&amp;quot;,&amp;quot;delaware&amp;quot;)
+
+Year2015 = Year2015[,-1]
+
+#########    2016
+Year2016 &amp;lt;- data.frame(GDP_ALL[,14])
+
+Year2016$year &amp;lt;- 2016
+
+Year2016$GDP &amp;lt;- Year2016[,1]
+
+Year2016$state &amp;lt;- c(&amp;quot;california&amp;quot;, &amp;quot;texas&amp;quot;, &amp;quot;new york&amp;quot;,&amp;quot;florida&amp;quot;,&amp;quot;ohio&amp;quot;, &amp;quot;washington&amp;quot;, &amp;quot;colorado&amp;quot;,&amp;quot;michigan&amp;quot;, &amp;quot;massachusetts&amp;quot;,&amp;quot;arizona&amp;quot;,&amp;quot;hawaii&amp;quot;,&amp;quot;pennsylvania&amp;quot;,&amp;quot;new jersey&amp;quot;,&amp;quot;illinois&amp;quot;,&amp;quot;north carolina&amp;quot;,&amp;quot;alabama&amp;quot;,&amp;quot;missouri&amp;quot;,&amp;quot;louisiana&amp;quot;,&amp;quot;wisconsin&amp;quot;,&amp;quot;minnesota&amp;quot;,&amp;quot;oregon&amp;quot;,&amp;quot;mississippi&amp;quot;,&amp;quot;south carolina&amp;quot;,&amp;quot;connecticut&amp;quot;,&amp;quot;indiana&amp;quot;,&amp;quot;tennessee&amp;quot;,&amp;quot;kentucky&amp;quot;,&amp;quot;alaska&amp;quot;, &amp;quot;district of columbia&amp;quot;,&amp;quot;georgia&amp;quot;,&amp;quot;virginia&amp;quot;,&amp;quot;utah&amp;quot;,&amp;quot;iowa&amp;quot;,&amp;quot;new mexico&amp;quot;,&amp;quot;north dakota&amp;quot;,&amp;quot;west virginia&amp;quot;,&amp;quot;wyoming&amp;quot;,&amp;quot;maryland&amp;quot;,&amp;quot;nebraska&amp;quot;,&amp;quot;maine&amp;quot;,&amp;quot;idaho&amp;quot;,&amp;quot;nevada&amp;quot;,&amp;quot;montana&amp;quot;,&amp;quot;kansas&amp;quot;,&amp;quot;rhode island&amp;quot;,&amp;quot;oklahoma&amp;quot;,&amp;quot;vermont&amp;quot;,&amp;quot;south dakota&amp;quot;,&amp;quot;arkansas&amp;quot;,&amp;quot;new hampshire&amp;quot;,&amp;quot;delaware&amp;quot;)
+
+Year2016 = Year2016[,-1]
+
+#########    2017
+Year2017 &amp;lt;- data.frame(GDP_ALL[,15])
+
+Year2017$year &amp;lt;- 2017
+
+Year2017$GDP &amp;lt;- Year2017[,1]
+
+Year2017$state &amp;lt;- c(&amp;quot;california&amp;quot;, &amp;quot;texas&amp;quot;, &amp;quot;new york&amp;quot;,&amp;quot;florida&amp;quot;,&amp;quot;ohio&amp;quot;, &amp;quot;washington&amp;quot;, &amp;quot;colorado&amp;quot;,&amp;quot;michigan&amp;quot;, &amp;quot;massachusetts&amp;quot;,&amp;quot;arizona&amp;quot;,&amp;quot;hawaii&amp;quot;,&amp;quot;pennsylvania&amp;quot;,&amp;quot;new jersey&amp;quot;,&amp;quot;illinois&amp;quot;,&amp;quot;north carolina&amp;quot;,&amp;quot;alabama&amp;quot;,&amp;quot;missouri&amp;quot;,&amp;quot;louisiana&amp;quot;,&amp;quot;wisconsin&amp;quot;,&amp;quot;minnesota&amp;quot;,&amp;quot;oregon&amp;quot;,&amp;quot;mississippi&amp;quot;,&amp;quot;south carolina&amp;quot;,&amp;quot;connecticut&amp;quot;,&amp;quot;indiana&amp;quot;,&amp;quot;tennessee&amp;quot;,&amp;quot;kentucky&amp;quot;,&amp;quot;alaska&amp;quot;, &amp;quot;district of columbia&amp;quot;,&amp;quot;georgia&amp;quot;,&amp;quot;virginia&amp;quot;,&amp;quot;utah&amp;quot;,&amp;quot;iowa&amp;quot;,&amp;quot;new mexico&amp;quot;,&amp;quot;north dakota&amp;quot;,&amp;quot;west virginia&amp;quot;,&amp;quot;wyoming&amp;quot;,&amp;quot;maryland&amp;quot;,&amp;quot;nebraska&amp;quot;,&amp;quot;maine&amp;quot;,&amp;quot;idaho&amp;quot;,&amp;quot;nevada&amp;quot;,&amp;quot;montana&amp;quot;,&amp;quot;kansas&amp;quot;,&amp;quot;rhode island&amp;quot;,&amp;quot;oklahoma&amp;quot;,&amp;quot;vermont&amp;quot;,&amp;quot;south dakota&amp;quot;,&amp;quot;arkansas&amp;quot;,&amp;quot;new hampshire&amp;quot;,&amp;quot;delaware&amp;quot;)
+
+Year2017 = Year2017[,-1]
+
+#########   2018
+Year2018 &amp;lt;- data.frame(GDP_ALL[,16])
+
+Year2018$year &amp;lt;- 2018
+
+Year2018$GDP &amp;lt;- Year2018[,1]
+
+Year2018$state &amp;lt;- c(&amp;quot;california&amp;quot;, &amp;quot;texas&amp;quot;, &amp;quot;new york&amp;quot;,&amp;quot;florida&amp;quot;,&amp;quot;ohio&amp;quot;, &amp;quot;washington&amp;quot;, &amp;quot;colorado&amp;quot;,&amp;quot;michigan&amp;quot;, &amp;quot;massachusetts&amp;quot;,&amp;quot;arizona&amp;quot;,&amp;quot;hawaii&amp;quot;,&amp;quot;pennsylvania&amp;quot;,&amp;quot;new jersey&amp;quot;,&amp;quot;illinois&amp;quot;,&amp;quot;north carolina&amp;quot;,&amp;quot;alabama&amp;quot;,&amp;quot;missouri&amp;quot;,&amp;quot;louisiana&amp;quot;,&amp;quot;wisconsin&amp;quot;,&amp;quot;minnesota&amp;quot;,&amp;quot;oregon&amp;quot;,&amp;quot;mississippi&amp;quot;,&amp;quot;south carolina&amp;quot;,&amp;quot;connecticut&amp;quot;,&amp;quot;indiana&amp;quot;,&amp;quot;tennessee&amp;quot;,&amp;quot;kentucky&amp;quot;,&amp;quot;alaska&amp;quot;, &amp;quot;district of columbia&amp;quot;,&amp;quot;georgia&amp;quot;,&amp;quot;virginia&amp;quot;,&amp;quot;utah&amp;quot;,&amp;quot;iowa&amp;quot;,&amp;quot;new mexico&amp;quot;,&amp;quot;north dakota&amp;quot;,&amp;quot;west virginia&amp;quot;,&amp;quot;wyoming&amp;quot;,&amp;quot;maryland&amp;quot;,&amp;quot;nebraska&amp;quot;,&amp;quot;maine&amp;quot;,&amp;quot;idaho&amp;quot;,&amp;quot;nevada&amp;quot;,&amp;quot;montana&amp;quot;,&amp;quot;kansas&amp;quot;,&amp;quot;rhode island&amp;quot;,&amp;quot;oklahoma&amp;quot;,&amp;quot;vermont&amp;quot;,&amp;quot;south dakota&amp;quot;,&amp;quot;arkansas&amp;quot;,&amp;quot;new hampshire&amp;quot;,&amp;quot;delaware&amp;quot;)
+
+Year2018 = Year2018[,-1]
+
+#########    2019
+Year2019 &amp;lt;- data.frame(GDP_ALL[,17])
+
+Year2019$year &amp;lt;- 2019
+
+Year2019$GDP &amp;lt;- Year2019[,1]
+
+Year2019$state &amp;lt;- c(&amp;quot;california&amp;quot;, &amp;quot;texas&amp;quot;, &amp;quot;new york&amp;quot;,&amp;quot;florida&amp;quot;,&amp;quot;ohio&amp;quot;, &amp;quot;washington&amp;quot;, &amp;quot;colorado&amp;quot;,&amp;quot;michigan&amp;quot;, &amp;quot;massachusetts&amp;quot;,&amp;quot;arizona&amp;quot;,&amp;quot;hawaii&amp;quot;,&amp;quot;pennsylvania&amp;quot;,&amp;quot;new jersey&amp;quot;,&amp;quot;illinois&amp;quot;,&amp;quot;north carolina&amp;quot;,&amp;quot;alabama&amp;quot;,&amp;quot;missouri&amp;quot;,&amp;quot;louisiana&amp;quot;,&amp;quot;wisconsin&amp;quot;,&amp;quot;minnesota&amp;quot;,&amp;quot;oregon&amp;quot;,&amp;quot;mississippi&amp;quot;,&amp;quot;south carolina&amp;quot;,&amp;quot;connecticut&amp;quot;,&amp;quot;indiana&amp;quot;,&amp;quot;tennessee&amp;quot;,&amp;quot;kentucky&amp;quot;,&amp;quot;alaska&amp;quot;, &amp;quot;district of columbia&amp;quot;,&amp;quot;georgia&amp;quot;,&amp;quot;virginia&amp;quot;,&amp;quot;utah&amp;quot;,&amp;quot;iowa&amp;quot;,&amp;quot;new mexico&amp;quot;,&amp;quot;north dakota&amp;quot;,&amp;quot;west virginia&amp;quot;,&amp;quot;wyoming&amp;quot;,&amp;quot;maryland&amp;quot;,&amp;quot;nebraska&amp;quot;,&amp;quot;maine&amp;quot;,&amp;quot;idaho&amp;quot;,&amp;quot;nevada&amp;quot;,&amp;quot;montana&amp;quot;,&amp;quot;kansas&amp;quot;,&amp;quot;rhode island&amp;quot;,&amp;quot;oklahoma&amp;quot;,&amp;quot;vermont&amp;quot;,&amp;quot;south dakota&amp;quot;,&amp;quot;arkansas&amp;quot;,&amp;quot;new hampshire&amp;quot;,&amp;quot;delaware&amp;quot;)
+
+Year2019 = Year2019[,-1]
+
+#########################################################################
+
+#Rows from seperate datasets are bound together
+GroupTable &amp;lt;- bind_rows(Year2003,Year2004,Year2005,Year2006,Year2007,Year2008,Year2009,Year2010,Year2011,Year2012,Year2013,Year2014,Year2015,Year2016,Year2017,Year2018,Year2019, .id = &amp;quot;df&amp;quot;) 
+
+#Using this function I was able to derive Long and Lat values for each state
+MainStates &amp;lt;- map_data(&amp;quot;state&amp;quot;)
+
+MainStates$state &amp;lt;- MainStates$region
+
+merged = GroupTable %&amp;gt;% inner_join(MainStates, by = &amp;quot;state&amp;quot;)
+
+#Function was designed to create a facet_wrap with ggplot meaning separate maps for separate years to show any trends over time.  This functionality makes time series analyses easier
+p &amp;lt;- ggplot()
+
+p0 &amp;lt;- p + geom_polygon (data=merged, aes( x = long, y = lat, group = group, fill= GDP), 
+                       color = &amp;quot;white&amp;quot;, size = 0.2)
+
+p1 &amp;lt;- p0 + geom_polygon(color = &amp;quot;gray90&amp;quot;, size = 0.05) +
+    coord_map(projection = &amp;quot;albers&amp;quot;, lat0 = 39, lat1 = 45) 
+
+p2 &amp;lt;- p1 + scale_fill_viridis_c(option = &amp;quot;plasma&amp;quot;)
+
+
+p2 + theme_map() + facet_wrap(~ year, ncol = 3) +
+    theme(legend.position = &amp;quot;bottom&amp;quot;,
+          strip.background = element_blank()) +
+    labs(fill = &amp;quot;Total Annual GDP&amp;quot;,
+         title = &amp;quot;Total GDP by Year and by State, 2003-2019&amp;quot;)  &lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;img src=&#34;/post/2020-08-11-connecting-to-fred-data.en_files/figure-html/unnamed-chunk-8-1.png&#34; width=&#34;672&#34; /&gt;&lt;/p&gt;
+&lt;p&gt;[This analysis was done to visualize Total GDP spread by state through years 2003 - 2019. Given the mass of data, the visualizations are a bit smaller than anticipated but general trends are: California has the highest total GDP of all states and this increases by the year as shown by the increased yellow tint, Texas appears to have the second highest total GDP in comparison with an increasing trend through the years.]&lt;/p&gt;
+&lt;div id=&#34;total-gdp-by-state-by-year-a-heat-map&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Total GDP by State by Year, A Heat Map&lt;/h3&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;z = ztable(GDP_ALL) 
+
+makeHeatmap(z)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;[This analysis is much easier to read than the map above. Using the heat map we can easily see that California has the highest GDP of all states for every year, followed by Texas and New York. The general trend is an increase in total GDP from 2003 to 2019.]&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Connecting to Data on FRED (Federal Reserve)</title>
+      <link>/post/introduction-to-shiny/</link>
+      <pubDate>Mon, 27 Jul 2020 00:00:00 +0000</pubDate>
+      <guid>/post/introduction-to-shiny/</guid>
+      <description>
+
+
+&lt;div id=&#34;section-shiny-from-r&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Shiny From R&lt;/h3&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;#install.packages(&amp;quot;modelr&amp;quot;)
+#install.packages(&amp;quot;FinCal&amp;quot;)
+#install.packages(&amp;quot;dplyr&amp;quot;)
+#install.packages(&amp;quot;FinancialMath&amp;quot;)
+
+library(&amp;quot;modelr&amp;quot;)
+library(&amp;quot;FinCal&amp;quot;)
+library(&amp;quot;dplyr&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## 
+## Attaching package: &amp;#39;dplyr&amp;#39;&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## The following objects are masked from &amp;#39;package:stats&amp;#39;:
+## 
+##     filter, lag&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## The following objects are masked from &amp;#39;package:base&amp;#39;:
+## 
+##     intersect, setdiff, setequal, union&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(&amp;quot;FinancialMath&amp;quot;)
+library(&amp;quot;ggplot2&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+    <item>
       <title>Time Value of Money</title>
       <link>/post/time-value-of-money/</link>
       <pubDate>Sun, 26 Jul 2020 00:00:00 +0000</pubDate>
@@ -788,13 +1342,13 @@ multiple_stocks_daily &amp;lt;- BatchGetSymbols(tickers,
 ##    tickers =RSP, DIA, AAPL, DIS, GOOG, BAR, UAL
 ##    Downloading data for benchmark ticker
 ## ^GSPC | yahoo (1|1) | Found cache file
-## RSP | yahoo (1|7) | Found cache file - Got 100% of valid prices | Well done!
-## DIA | yahoo (2|7) | Found cache file - Got 100% of valid prices | Feliz que nem lambari de sanga!
-## AAPL | yahoo (3|7) | Found cache file - Got 100% of valid prices | Well done!
-## DIS | yahoo (4|7) | Found cache file - Got 100% of valid prices | Youre doing good!
+## RSP | yahoo (1|7) | Found cache file - Got 100% of valid prices | Feels good!
+## DIA | yahoo (2|7) | Found cache file - Got 100% of valid prices | Looking good!
+## AAPL | yahoo (3|7) | Found cache file - Got 100% of valid prices | Got it!
+## DIS | yahoo (4|7) | Found cache file - Got 100% of valid prices | OK!
 ## GOOG | yahoo (5|7) | Found cache file - Got 100% of valid prices | Got it!
-## BAR | yahoo (6|7) | Found cache file - Got 20.9% of valid prices | OUT: not enough data (thresh.bad.data = 75.0%)
-## UAL | yahoo (7|7) | Found cache file - Got 100% of valid prices | Got it!
+## BAR | yahoo (6|7) | Found cache file - Got 21% of valid prices | OUT: not enough data (thresh.bad.data = 75%)
+## UAL | yahoo (7|7) | Found cache file - Got 100% of valid prices | Youre doing good!
 &lt;/code&gt;&lt;/pre&gt;
 &lt;pre&gt;&lt;code class=&#34;language-r&#34;&gt;#converting the df.tickers data package into a data frame
 multiple_stocks_daily_ret_df &amp;lt;- data.frame(multiple_stocks_daily$df.tickers)

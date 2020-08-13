@@ -1,0 +1,2080 @@
+---
+title: "Connecting to FRED Data"
+author: "Colin James"
+date: '2020-08-11'
+output: pdf_document
+categories: []
+tags: []
+subtitle: ''
+summary: ''
+authors: []
+lastmod: '2020-08-11T21:18:32-04:00'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+slug: connecting-to-fred-data
+---
+
+### Reading in Data From FRED
+   
+```{r}  
+#install.packages("modelr")
+#install.packages("FinCal")
+#install.packages("dplyr")
+#install.packages("FinancialMath")
+#install.packages("devtools")
+#install.packages("tidyverse")
+#install.packages("dplyr")
+#install.packages("ggpubr")
+#install.packages("epitools")
+#install.packages("data.table")
+#install.packages("usmap")
+#install.packages("maps")
+#install.packages("cowplot")
+#install.packages("ztable")
+
+library("modelr")
+library("FinCal") 
+library("dplyr")
+library("FinancialMath")
+library("ggplot2")
+library("quantmod")
+library("epitools")
+library("data.table")
+library("usmap")
+library("maps")
+library("cowplot")
+library("ztable")
+
+
+```
+
+
+## Connecting to FRED through an R package downloaded from GitHub
+
+```{r include=FALSE}
+#install.packages("devtools")
+
+library("devtools")
+
+#Sys.unsetenv("GITHUB_PAT") 
+
+#remotes::install_github(
+# repo = "sboysel/fredr")
+
+#set fred key function 
+#fred series function
+fredr_series <- function(series_id = NULL,
+                         realtime_start = NULL,
+                         realtime_end = NULL) {
+
+  validate_series_id(series_id)
+
+  user_args <- capture_args(
+    series_id,
+    realtime_start,
+    realtime_end
+  )
+
+  fredr_args <- list(
+    endpoint = "series"
+  )
+
+  do.call(fredr_request, c(fredr_args, user_args))
+
+}
+
+fredr_docs <- function() {
+  utils::browseURL(url = "https://api.stlouisfed.org/docs/fred/")
+}
+
+fredr_docs()
+
+
+#fredr category children function
+fredr_category_children <- function(category_id = 0L,
+                                    realtime_start = NULL,
+                                    realtime_end = NULL) {
+
+  validate_category_id(category_id)
+
+  user_args <- capture_args(
+    category_id,
+    realtime_start,
+    realtime_end
+  )
+
+  fredr_args <- list(
+    endpoint = "category/children"
+  )
+
+  do.call(fredr_request, c(fredr_args, user_args))
+
+}
+
+
+# validate is class function
+capture_args <- function(...) {
+
+  args <- list_named(...)
+
+  # Validation - integer values
+  validate_limit(args$limit)
+
+  # Validation - boolean values
+  validate_boolean(args$include_release_dates_with_no_data)
+  validate_boolean(args$include_observation_values)
+
+  # Validation - dates
+  date_lst <- list(
+    args$observation_start,
+    args$observation_end,
+    args$observation_date,
+    args$realtime_start,
+    args$realtime_end,
+    args$vintage_dates
+  )
+
+  date_nms <- list("observation_start", "observation_end", "observation_date",
+                   "realtime_start", "realtime_end", "vintage_dates")
+
+  mapply(validate_is_class, date_lst, date_nms, MoreArgs = list(x_class = "Date"))
+
+  # Validation - times
+  time_lst <- list(
+    args$start_time,
+    args$end_time
+  )
+
+  time_nms <- list("start_time", "end_time")
+
+  mapply(
+    validate_is_class,
+    time_lst, time_nms,
+    MoreArgs = list(x_class = c("POSIXct", "POSIXlt", "POSIXt"))
+  )
+
+  # Formatting - integer values
+  args$limit      <- force_integer(args$limit)
+  args$release_id <- force_integer(args$release_id)
+  args$source_id  <- force_integer(args$source_id)
+  args$element_id <- force_integer(args$element_id)
+
+  # Formatting - boolean values
+  args$include_release_dates_with_no_data <- format_boolean(
+    args$include_release_dates_with_no_data
+  )
+  args$include_observation_values <- format_boolean(
+    args$include_observation_values
+  )
+
+  # Formatting - dates
+  args$observation_start <- format_fred_date(args$observation_start)
+  args$observation_end   <- format_fred_date(args$observation_end)
+  args$observation_date  <- format_fred_date(args$observation_date)
+  args$realtime_start    <- format_fred_date(args$realtime_start)
+  args$realtime_end      <- format_fred_date(args$realtime_end)
+  args$vintage_dates     <- format_fred_date(args$vintage_dates)
+
+  # Formatting - time
+  args$start_time <- format_fred_time(args$start_time)
+  args$end_time   <- format_fred_time(args$end_time)
+
+  # Formatting - tags
+  args$tag_names         <- format_tag_names(args$tag_names)
+  args$exclude_tag_names <- format_tag_names(args$exclude_tag_names)
+
+  # Return list for use in API call
+  args
+}
+
+# ------------------------------------------------------------------------------
+# Validation helpers
+
+validate_is_class <- function(x, x_nm, x_class) {
+  if(is.null(x)) return(x)
+
+  if(!inherits(x, x_class)) {
+    msg <- paste0("Argument `", x_nm, "` must be a `", x_class, "`.")
+    stop(msg, call. = FALSE)
+  }
+}
+
+validate_limit <- function(x) {
+  if(is.null(x)) return(x)
+
+  validate_is_class(x, "limit", c("integer", "numeric"))
+
+  if (!length(x) == 1) {
+    stop("`limit` must be of length 1.", call. = FALSE)
+  }
+
+  if(x <= 0) {
+    stop("`limit` must be a non-negative integer.", call. = FALSE)
+  }
+}
+
+validate_series_id <- function(x) {
+  if(is.null(x)) {
+    stop("Argument `series_id` must be supplied.", call. = FALSE)
+  }
+
+  validate_is_class(x, "series_id", "character")
+
+  if(! (length(x) == 1) ) {
+    stop("Argument `series_id` must be of length 1.", call. = FALSE)
+  }
+}
+
+validate_release_id <- function(x) {
+  if(is.null(x)) {
+    stop("Argument `release_id` must be supplied.", call. = FALSE)
+  }
+
+  validate_is_class(x, "release_id", c("integer", "numeric"))
+
+  if(! (length(x) == 1) ) {
+    stop("Argument `release_id` must be of length 1.", call. = FALSE)
+  }
+}
+
+validate_source_id <- function(x) {
+  if(is.null(x)) {
+    stop("Argument `source_id` must be supplied.", call. = FALSE)
+  }
+
+  validate_is_class(x, "source_id", c("integer", "numeric"))
+
+  if(! (length(x) == 1) ) {
+    stop("Argument `source_id` must be of length 1.", call. = FALSE)
+  }
+}
+
+validate_category_id <- function(x) {
+
+  validate_is_class(x, "category_id", c("integer", "numeric"))
+
+  if(! (length(x) == 1) ) {
+    stop("Argument `category_id` must be of length 1.", call. = FALSE)
+  }
+}
+
+validate_required_string_param <- function(x) {
+
+  x_nm <- deparse(substitute(x))
+
+  if(is.null(x)) {
+    msg <- paste0("Argument `", x_nm, "` must be supplied.")
+    stop(msg, call. = FALSE)
+  }
+
+  validate_is_class(x, x_nm, "character")
+
+  if(! (length(x) == 1) ) {
+    msg <- paste0("Argument `", x_nm, "` must be of length 1.")
+    stop(msg, call. = FALSE)
+  }
+
+}
+
+validate_boolean <- function(x) {
+  if(is.null(x)) return(x)
+
+  validate_is_class(x, "include_release_dates_with_no_data", "logical")
+
+}
+
+validate_endpoint <- function(x) {
+
+  validate_is_class(x, "endpoint", "character")
+
+  if(! (length(x) == 1) ) {
+    stop("x must be of length 1.", call. = FALSE)
+  }
+
+  if (!is_endpoint(x)) {
+    msg <- paste0(
+      "`", x,
+      "` is not a valid endpoint.  See ",
+      "https://research.stlouisfed.org/docs/api/fred/"
+    )
+    stop(msg,  call. = FALSE)
+  }
+
+}
+
+# ------------------------------------------------------------------------------
+# Extra helpers
+
+format_fred_date <- function(x) {
+  if(is.null(x)) return(x)
+
+  format(x, "%Y-%m-%d")
+}
+
+format_tag_names <- function(x) {
+  if(is.null(x)) return(x)
+
+  gsub("\\+", " ", x)
+}
+
+format_fred_time <- function(x) {
+  if(is.null(x)) return(x)
+
+  format(x, "%Y%m%d%H%M%S")
+}
+
+format_boolean <- function(x) {
+  if(is.null(x)) return(x)
+
+  ifelse(x, "true", "false")
+
+}
+
+list_named <- function(...) {
+  lapply(rlang::enquos(..., .named = TRUE), rlang::eval_tidy)
+}
+
+force_integer <- function(x) {
+  if(is.null(x)) return(x)
+
+  if(is.integer(x)) {
+    x
+  } else {
+    as.integer(x)
+  }
+}
+
+is_endpoint <- function(x) {
+  x %in% c(
+    "category",
+    "category/children",
+    "category/related",
+    "category/series",
+    "category/tags",
+    "category/related_tags",
+    "series",
+    "series/search",
+    "series/updates",
+    "series/categories",
+    "series/search/tags",
+    "series/search/related_tags",
+    "series/release",
+    "series/observations",
+    "series/vintagedates",
+    "series/tags",
+    "release",
+    "releases",
+    "releases/dates",
+    "release/dates",
+    "release/series",
+    "release/sources",
+    "release/tags",
+    "release/related_tags",
+    "release/tables",
+    "source",
+    "sources",
+    "source/releases",
+    "tags",
+    "related_tags",
+    "tags/series"
+  )
+}
+
+#' Get a FRED category
+fredr_category <- function(category_id = 0L) {
+
+  validate_category_id(category_id)
+
+  user_args <- capture_args(
+    category_id
+  )
+
+  fredr_args <- list(
+    endpoint = "category"
+  )
+
+  do.call(fredr_request, c(fredr_args, user_args))
+
+}
+
+#Fred Category children function
+fredr_category_children <- function(category_id = 0L,
+                                    realtime_start = NULL,
+                                    realtime_end = NULL) {
+
+  validate_category_id(category_id)
+
+  user_args <- capture_args(
+    category_id,
+    realtime_start,
+    realtime_end
+  )
+
+  fredr_args <- list(
+    endpoint = "category/children"
+  )
+
+  do.call(fredr_request, c(fredr_args, user_args))
+
+}
+
+#fred category related function
+fredr_category_related <- function(category_id = 0L,
+                                   realtime_start = NULL,
+                                   realtime_end = NULL) {
+
+  validate_category_id(category_id)
+
+  user_args <- capture_args(
+    category_id,
+    realtime_start,
+    realtime_end
+  )
+
+  fredr_args <- list(
+    endpoint = "category/related"
+  )
+
+  do.call(fredr_request, c(fredr_args, user_args))
+
+}
+
+#fred category related tags
+fredr_category_related_tags <- function(category_id = 0L,
+                                        tag_names = NULL,
+                                        exclude_tag_names = NULL,
+                                        tag_group_id = NULL,
+                                        search_text = NULL,
+                                        limit = NULL,
+                                        offset = NULL,
+                                        order_by = NULL,
+                                        sort_order = NULL,
+                                        realtime_start = NULL,
+                                        realtime_end = NULL) {
+
+  validate_category_id(category_id)
+
+  validate_required_string_param(tag_names)
+
+  user_args <- capture_args(
+    category_id,
+    realtime_start,
+    realtime_end,
+    tag_names,
+    exclude_tag_names,
+    tag_group_id,
+    search_text,
+    limit,
+    offset,
+    order_by,
+    sort_order
+  )
+
+  fredr_args <- list(
+    endpoint = "category/related_tags"
+  )
+
+  do.call(fredr_request, c(fredr_args, user_args))
+
+}
+
+#fred category series
+fredr_category_series <- function(category_id = 0L,
+                                  filter_variable = NULL,
+                                  filter_value = NULL,
+                                  tag_names = NULL,
+                                  exclude_tag_names = NULL,
+                                  limit = NULL,
+                                  offset = NULL,
+                                  order_by = NULL,
+                                  sort_order = NULL,
+                                  realtime_start = NULL,
+                                  realtime_end = NULL) {
+
+  validate_category_id(category_id)
+
+  user_args <- capture_args(
+    category_id,
+    realtime_start,
+    realtime_end,
+    limit,
+    offset,
+    order_by,
+    sort_order,
+    filter_variable,
+    filter_value,
+    tag_names,
+    exclude_tag_names
+  )
+
+  fredr_args <- list(
+    endpoint = "category/series"
+  )
+
+  do.call(fredr_request, c(fredr_args, user_args))
+
+}
+
+#fred category tags
+fredr_category_tags <- function(category_id = 0L,
+                                tag_names = NULL,
+                                tag_group_id = NULL,
+                                search_text = NULL,
+                                limit = NULL,
+                                offset = NULL,
+                                order_by = NULL,
+                                sort_order = NULL,
+                                realtime_start = NULL,
+                                realtime_end = NULL) {
+
+  validate_category_id(category_id)
+
+  user_args <- capture_args(
+    category_id,
+    realtime_start,
+    realtime_end,
+    tag_names,
+    tag_group_id,
+    search_text,
+    limit,
+    offset,
+    order_by,
+    sort_order
+  )
+
+  fredr_args <- list(
+    endpoint = "category/tags"
+  )
+
+  do.call(fredr_request, c(fredr_args, user_args))
+
+}
+
+#fredr docs function
+fredr_docs <- function() {
+  utils::browseURL(url = "https://api.stlouisfed.org/docs/fred/")
+}
+
+#fredr related tags function
+fredr_related_tags <- function(tag_names = NULL,
+                               exclude_tag_names = NULL,
+                               tag_group_id = NULL,
+                               search_text = NULL,
+                               limit = NULL,
+                               offset = NULL,
+                               order_by = NULL,
+                               sort_order = NULL,
+                               realtime_start = NULL,
+                               realtime_end = NULL) {
+
+  validate_required_string_param(tag_names)
+
+  user_args <- capture_args(
+    tag_names,
+    realtime_start,
+    realtime_end,
+    exclude_tag_names,
+    tag_group_id,
+    search_text,
+    limit,
+    offset,
+    order_by,
+    sort_order
+  )
+
+  fredr_args <- list(
+    endpoint = "related_tags"
+  )
+
+  do.call(fredr_request, c(fredr_args, user_args))
+
+}
+
+
+#fredr release function
+fredr_release <- function(release_id = NULL,
+                          realtime_start = NULL,
+                          realtime_end = NULL) {
+
+  validate_release_id(release_id)
+
+  user_args <- capture_args(
+    release_id,
+    realtime_start,
+    realtime_end
+  )
+
+  fredr_args <- list(
+    endpoint = "release"
+  )
+
+  do.call(fredr_request, c(fredr_args, user_args))
+
+}
+
+
+# fredr release dates function
+fredr_release_dates <- function(release_id = NULL,
+                                limit = NULL,
+                                offset = NULL,
+                                sort_order = NULL,
+                                include_release_dates_with_no_data = NULL,
+                                realtime_start = NULL,
+                                realtime_end = NULL) {
+
+  validate_release_id(release_id)
+
+  user_args <- capture_args(
+    release_id,
+    limit,
+    offset,
+    sort_order,
+    include_release_dates_with_no_data,
+    realtime_start,
+    realtime_end
+  )
+
+  fredr_args <- list(
+    endpoint = "release/dates"
+  )
+
+  do.call(fredr_request, c(fredr_args, user_args))
+
+}
+
+#fredr release related tags function
+fredr_release_related_tags <- function(release_id = NULL,
+                                       tag_names = NULL,
+                                       exclude_tag_names = NULL,
+                                       tag_group_id = NULL,
+                                       search_text = NULL,
+                                       limit = NULL,
+                                       offset = NULL,
+                                       order_by = NULL,
+                                       sort_order = NULL,
+                                       realtime_start = NULL,
+                                       realtime_end = NULL) {
+
+  validate_release_id(release_id)
+
+  validate_required_string_param(tag_names)
+
+  user_args <- capture_args(
+    release_id,
+    tag_names,
+    exclude_tag_names,
+    tag_group_id,
+    search_text,
+    limit,
+    offset,
+    order_by,
+    sort_order,
+    realtime_start,
+    realtime_end
+  )
+
+  fredr_args <- list(
+    endpoint = "release/related_tags"
+  )
+
+  do.call(fredr_request, c(fredr_args, user_args))
+
+}
+
+#fredr release series
+fredr_release_series <- function(release_id = NULL,
+                                 filter_variable = NULL,
+                                 filter_value = NULL,
+                                 tag_names = NULL,
+                                 exclude_tag_names = NULL,
+                                 limit = NULL,
+                                 offset = NULL,
+                                 order_by = NULL,
+                                 sort_order = NULL,
+                                 realtime_start = NULL,
+                                 realtime_end = NULL) {
+
+  validate_release_id(release_id)
+
+  user_args <- capture_args(
+    release_id,
+    limit,
+    offset,
+    order_by,
+    sort_order,
+    filter_variable,
+    filter_value,
+    tag_names,
+    exclude_tag_names,
+    realtime_start,
+    realtime_end
+  )
+
+  fredr_args <- list(
+    endpoint = "release/series"
+  )
+
+  do.call(fredr_request, c(fredr_args, user_args))
+
+}
+
+# fredr release sources
+fredr_release_sources <- function(release_id = NULL,
+                                  realtime_start = NULL,
+                                  realtime_end = NULL) {
+
+  validate_release_id(release_id)
+
+  user_args <- capture_args(
+    release_id,
+    realtime_start,
+    realtime_end
+  )
+
+  fredr_args <- list(
+    endpoint = "release/sources"
+  )
+
+  do.call(fredr_request, c(fredr_args, user_args))
+
+}
+
+#fredr release tables function
+fredr_release_tables <- function(release_id = NULL,
+                                 element_id = NULL,
+                                 include_observation_values = NULL,
+                                 observation_date = NULL) {
+
+  validate_release_id(release_id)
+
+  user_args <- capture_args(
+    release_id,
+    element_id,
+    include_observation_values,
+    observation_date
+  )
+
+  fredr_args <- list(
+    endpoint = "release/tables"
+  )
+
+  do.call(fredr_request, c(fredr_args, user_args))
+
+}
+
+#fredr release tags function R
+fredr_release_tags <- function(release_id = NULL,
+                               tag_names = NULL,
+                               tag_group_id = NULL,
+                               search_text = NULL,
+                               limit = NULL,
+                               offset = NULL,
+                               order_by = NULL,
+                               sort_order = NULL,
+                               realtime_start = NULL,
+                               realtime_end = NULL) {
+
+  validate_release_id(release_id)
+
+  user_args <- capture_args(
+    release_id,
+    tag_names,
+    tag_group_id,
+    search_text,
+    limit,
+    offset,
+    order_by,
+    sort_order,
+    realtime_start,
+    realtime_end
+  )
+
+  fredr_args <- list(
+    endpoint = "release/tags"
+  )
+
+  do.call(fredr_request, c(fredr_args, user_args))
+
+}
+
+#fredr releases function
+fredr_releases <- function(limit = NULL,
+                           offset = NULL,
+                           order_by = NULL,
+                           sort_order = NULL,
+                           realtime_start = NULL,
+                           realtime_end = NULL) {
+
+  user_args <- capture_args(
+    limit,
+    offset,
+    order_by,
+    sort_order,
+    realtime_start,
+    realtime_end
+  )
+
+  fredr_args <- list(
+    endpoint = "releases"
+  )
+
+  do.call(fredr_request, c(fredr_args, user_args))
+
+}
+
+#fredr releases dates function 
+fredr_releases_dates <- function(limit = NULL,
+                                 offset = NULL,
+                                 sort_order = NULL,
+                                 order_by = NULL,
+                                 include_release_dates_with_no_data = NULL,
+                                 realtime_start = NULL,
+                                 realtime_end = NULL) {
+
+  user_args <- capture_args(
+    limit,
+    offset,
+    sort_order,
+    order_by,
+    include_release_dates_with_no_data,
+    realtime_start,
+    realtime_end
+  )
+
+  fredr_args <- list(
+    endpoint = "releases/dates"
+  )
+
+  do.call(fredr_request, c(fredr_args, user_args))
+
+}
+
+#fredr request function
+fredr_request <- function(endpoint, ..., to_frame = TRUE, print_req = FALSE, retry_times = 10L) {
+
+  if (identical(Sys.getenv("FRED_API_KEY"), "")) {
+    stop("FRED API key must be set. See `?fredr_set_key`.")
+  }
+
+  validate_endpoint(endpoint)
+
+  params <- list(...)
+  params$api_key <- Sys.getenv("FRED_API_KEY")
+  params$file_type <- "json"
+
+  resp <- httr::RETRY(
+    verb = "GET",
+    url = "https://api.stlouisfed.org/",
+    path = paste0("fred/", endpoint),
+    query = params,
+    times = retry_times
+  )
+
+  if (print_req) {
+    message(resp$url)
+  }
+
+  if (resp$status_code != 200) {
+    err <- httr::content(resp)
+    stop(paste0(err$error_code, ": ", err$error_message))
+  }
+
+  if (to_frame) {
+    parsed <- jsonlite::fromJSON(httr::content(resp, "text"))
+    if (endpoint %in% c("category",
+                        "category/children",
+                        "category/related",
+                        "series/categories")) {
+      frame <- tibble::as_tibble(parsed$categories)
+    }
+    if (endpoint == "category/series") {
+      frame <- tibble::as_tibble(parsed$series)
+    }
+    if (endpoint %in% c("category/tags",
+                        "category/related_tags",
+                        "release/tags",
+                        "release/related_tags",
+                        "series/search/tags",
+                        "series/search/related_tags",
+                        "series/tags",
+                        "tags",
+                        "related_tags")) {
+      frame <- tibble::as_tibble(parsed$tags)
+    }
+    if (endpoint %in% c("releases",
+                        "release",
+                        "series/release",
+                        "source/releases")) {
+      frame <- tibble::as_tibble(parsed$releases)
+    }
+    if (endpoint %in% c("releases/dates",
+                        "release/dates")) {
+      frame <- tibble::as_tibble(parsed$release_dates)
+    }
+    if (endpoint %in% c("release/series",
+                        "series",
+                        "series/search",
+                        "series/updates",
+                        "tags/series")) {
+      frame <- tibble::as_tibble(parsed$seriess)
+    }
+    if (endpoint == "release/sources") {
+      frame <- tibble::as_tibble(parsed$sources)
+    }
+    if (endpoint == "series/observations") {
+      frame <- tibble::as_tibble(parsed$observations)
+    }
+    if (endpoint == "series/vintagedates") {
+      frame <- tibble::tibble(vintage_dates = parsed$vintage_dates)
+    }
+    if (endpoint %in% c("source",
+                        "sources")) {
+      frame <- tibble::as_tibble(parsed$sources)
+    }
+    if (endpoint == "release/tables") {
+      frame <- tibble::enframe(parsed$elements)
+    }
+    return(frame)
+  } else {
+    return(resp)
+  }
+}
+
+#fredr series function
+fredr_series <- function(series_id = NULL,
+                         realtime_start = NULL,
+                         realtime_end = NULL) {
+
+  validate_series_id(series_id)
+
+  user_args <- capture_args(
+    series_id,
+    realtime_start,
+    realtime_end
+  )
+
+  fredr_args <- list(
+    endpoint = "series"
+  )
+
+  do.call(fredr_request, c(fredr_args, user_args))
+
+}
+
+#fredr series categories function
+fredr_series_categories <- function(series_id = NULL,
+                                    realtime_start = NULL,
+                                    realtime_end = NULL) {
+
+  validate_series_id(series_id)
+
+  user_args <- capture_args(
+    series_id,
+    realtime_start,
+    realtime_end
+  )
+
+  fredr_args <- list(
+    endpoint = "series/categories"
+  )
+
+  do.call(fredr_request, c(fredr_args, user_args))
+
+}
+
+#fredr series observations
+fredr_series_observations <- function(series_id = NULL,
+                                      observation_start = NULL,
+                                      observation_end = NULL,
+                                      frequency = NULL,
+                                      aggregation_method = NULL,
+                                      limit = NULL,
+                                      offset = NULL,
+                                      sort_order = NULL,
+                                      units = NULL,
+                                      realtime_start = NULL,
+                                      realtime_end = NULL,
+                                      vintage_dates = NULL,
+                                      output_type = NULL) {
+
+  validate_series_id(series_id)
+
+  user_args <- capture_args(
+    observation_start,
+    observation_end,
+    frequency,
+    aggregation_method,
+    limit,
+    offset,
+    sort_order,
+    units,
+    realtime_start,
+    realtime_end,
+    vintage_dates,
+    output_type
+  )
+
+  fredr_args <- list(
+    series_id = series_id,
+    endpoint = "series/observations"
+  )
+
+  frame <- do.call(fredr_request, c(fredr_args, user_args))
+
+  if(NROW(frame) == 0) {
+    return(empty_fredr_tibble())
+  }
+
+  frame$value[frame$value == "."] <- NA
+
+  obs <- tibble::tibble(
+    date = as.Date(frame$date, "%Y-%m-%d"),
+    series_id = series_id,
+    value = as.numeric(frame$value)
+  )
+
+  return(obs)
+}
+
+#' @rdname fredr
+#' @export
+fredr <- fredr_series_observations
+
+
+empty_fredr_tibble <- function() {
+
+  zero_length_numeric <- numeric()
+
+  zero_length_date <- zero_length_numeric
+  class(zero_length_date) <- "Date"
+
+  zero_length_character <- character()
+
+  tibble::tibble(
+    date = zero_length_date,
+    series_id = zero_length_character,
+    value = zero_length_numeric
+  )
+}
+
+#fredr series release function
+fredr_series_release <- function(series_id = NULL,
+                                 realtime_start = NULL,
+                                 realtime_end = NULL) {
+
+  validate_series_id(series_id)
+
+  user_args <- capture_args(
+    series_id,
+    realtime_start,
+    realtime_end
+  )
+
+  fredr_args <- list(
+    endpoint = "series/release"
+  )
+
+  do.call(fredr_request, c(fredr_args, user_args))
+
+}
+
+#fredr series search text
+fredr_series_search_text <- function(search_text = NULL,
+                                     tag_names = NULL,
+                                     exclude_tag_names = NULL,
+                                     filter_variable = NULL,
+                                     filter_value = NULL,
+                                     limit = NULL,
+                                     offset = NULL,
+                                     order_by = NULL,
+                                     sort_order = NULL,
+                                     realtime_start = NULL,
+                                     realtime_end = NULL) {
+
+  validate_required_string_param(search_text)
+
+  args <- capture_args(
+    search_text = search_text,
+    limit = limit,
+    offset = offset,
+    order_by = order_by,
+    sort_order = sort_order,
+    filter_variable = filter_variable,
+    filter_value = filter_value,
+    realtime_start = realtime_start,
+    realtime_end = realtime_end,
+    tag_names = tag_names,
+    exclude_tag_names = exclude_tag_names
+  )
+
+  fredr_args <- list(endpoint = "series/search", search_type = "full_text")
+
+  do.call(fredr_request, c(fredr_args, args))
+}
+
+#' @rdname fredr_series_search
+#' @export
+fredr_series_search_id <- function(search_text = NULL,
+                                   limit = 1000L,
+                                   offset = 0,
+                                   order_by = NULL,
+                                   sort_order = "asc",
+                                   filter_variable = NULL,
+                                   filter_value = NULL,
+                                   realtime_start = NULL,
+                                   realtime_end = NULL,
+                                   tag_names = NULL,
+                                   exclude_tag_names = NULL) {
+
+  validate_required_string_param(search_text)
+
+  args <- capture_args(
+    search_text,
+    limit,
+    offset,
+    order_by,
+    sort_order,
+    filter_variable,
+    filter_value,
+    realtime_start,
+    realtime_end,
+    tag_names,
+    exclude_tag_names
+  )
+
+  fredr_args <- list(
+    endpoint = "series/search",
+    search_type = "series_id"
+  )
+
+  do.call(fredr_request, c(fredr_args, args))
+}
+
+
+#fredr series search related tags function
+fredr_series_search_related_tags <- function(series_search_text = NULL,
+                                             tag_names = NULL,
+                                             exclude_tag_names = NULL,
+                                             tag_group_id = NULL,
+                                             tag_search_text = NULL,
+                                             limit = NULL,
+                                             offset = NULL,
+                                             order_by = NULL,
+                                             sort_order = NULL,
+                                             realtime_start = NULL,
+                                             realtime_end = NULL) {
+
+  validate_required_string_param(series_search_text)
+
+  validate_required_string_param(tag_names)
+
+  args <- capture_args(
+    series_search_text,
+    tag_names,
+    limit,
+    offset,
+    order_by,
+    sort_order,
+    exclude_tag_names,
+    tag_group_id,
+    tag_search_text,
+    realtime_start,
+    realtime_end
+  )
+
+  fredr_args <- list(endpoint = "series/search/related_tags")
+
+  do.call(fredr_request, c(fredr_args, args))
+}
+
+#fredr series search tags function
+fredr_series_search_tags <- function(series_search_text = NULL,
+                                     tag_names = NULL,
+                                     tag_group_id = NULL,
+                                     tag_search_text = NULL,
+                                     limit = NULL,
+                                     offset = NULL,
+                                     order_by = NULL,
+                                     sort_order = NULL,
+                                     realtime_start = NULL,
+                                     realtime_end = NULL) {
+
+  validate_required_string_param(series_search_text)
+
+  args <- capture_args(
+    series_search_text,
+    limit,
+    offset,
+    order_by,
+    sort_order,
+    tag_names,
+    tag_group_id,
+    tag_search_text,
+    realtime_start,
+    realtime_end
+  )
+
+  fredr_args <- list(endpoint = "series/search/tags")
+
+  do.call(fredr_request, c(fredr_args, args))
+}
+
+#fredr series tags function
+fredr_series_tags <- function(series_id = NULL,
+                              order_by = NULL,
+                              sort_order = NULL,
+                              realtime_start = NULL,
+                              realtime_end = NULL) {
+
+  validate_series_id(series_id)
+
+  user_args <- capture_args(
+    series_id,
+    order_by,
+    sort_order,
+    realtime_start,
+    realtime_end
+  )
+
+  fredr_args <- list(
+    endpoint = "series/tags"
+  )
+
+  do.call(fredr_request, c(fredr_args, user_args))
+
+}
+
+#fredr series updates
+fredr_series_updates <- function(filter_value = NULL,
+                                 start_time = NULL,
+                                 end_time = NULL,
+                                 limit = NULL,
+                                 offset = NULL,
+                                 realtime_start = NULL,
+                                 realtime_end = NULL) {
+
+  user_args <- capture_args(
+    limit,
+    offset,
+    filter_value,
+    start_time,
+    end_time,
+    realtime_start,
+    realtime_end
+  )
+
+  fredr_args <- list(
+    endpoint = "series/updates"
+  )
+
+  do.call(fredr_request, c(fredr_args, user_args))
+
+}
+
+#fredr source function
+fredr_source <- function(source_id = NULL,
+                         realtime_start = NULL,
+                         realtime_end = NULL) {
+
+  validate_source_id(source_id)
+
+  user_args <- capture_args(
+    source_id,
+    realtime_start,
+    realtime_end
+  )
+
+  fredr_args <- list(
+    endpoint = "source"
+  )
+
+  do.call(fredr_request, c(fredr_args, user_args))
+
+}
+
+#fredr source releases function
+fredr_source_releases <- function(source_id = NULL,
+                                  limit = NULL,
+                                  offset = NULL,
+                                  order_by = NULL,
+                                  sort_order = NULL,
+                                  realtime_start = NULL,
+                                  realtime_end = NULL) {
+
+  validate_source_id(source_id)
+
+  user_args <- capture_args(
+    realtime_start,
+    realtime_end,
+    source_id,
+    limit,
+    offset,
+    order_by,
+    sort_order
+  )
+
+  fredr_args <- list(
+    endpoint = "source/releases"
+  )
+
+  do.call(fredr_request, c(fredr_args, user_args))
+
+}
+
+#fredr sources function
+fredr_sources <- function(limit = NULL,
+                          offset = NULL,
+                          order_by = NULL,
+                          sort_order = NULL,
+                          realtime_start = NULL,
+                          realtime_end = NULL) {
+
+  user_args <- capture_args(
+    limit,
+    offset,
+    order_by,
+    sort_order,
+    realtime_start,
+    realtime_end
+  )
+
+  fredr_args <- list(
+    endpoint = "sources"
+  )
+
+  do.call(fredr_request, c(fredr_args, user_args))
+
+}
+
+#fredr tags function
+fredr_tags <- function(tag_names = NULL,
+                       tag_group_id = NULL,
+                       search_text = NULL,
+                       limit = NULL,
+                       offset = NULL,
+                       order_by = NULL,
+                       sort_order = NULL,
+                       realtime_start = NULL,
+                       realtime_end = NULL) {
+
+  user_args <- capture_args(
+    realtime_start,
+    realtime_end,
+    tag_names,
+    tag_group_id,
+    search_text,
+    limit,
+    offset,
+    order_by,
+    sort_order
+  )
+
+  fredr_args <- list(
+    endpoint = "tags"
+  )
+
+  do.call(fredr_request, c(fredr_args, user_args))
+
+}
+
+#fredr tags series function
+fredr_tags_series <- function(tag_names = NULL,
+                              exclude_tag_names = NULL,
+                              limit = NULL,
+                              offset = NULL,
+                              order_by = NULL,
+                              sort_order = NULL,
+                              realtime_start = NULL,
+                              realtime_end = NULL) {
+
+  validate_required_string_param(tag_names)
+
+  user_args <- capture_args(
+    tag_names,
+    exclude_tag_names,
+    realtime_start,
+    realtime_end,
+    limit,
+    offset,
+    order_by,
+    sort_order
+  )
+
+  fredr_args <- list(
+    endpoint = "tags/series"
+  )
+
+  do.call(fredr_request, c(fredr_args, user_args))
+
+}
+
+#validation R
+capture_args <- function(...) {
+
+  args <- list_named(...)
+
+  # Validation - integer values
+  validate_limit(args$limit)
+
+  # Validation - boolean values
+  validate_boolean(args$include_release_dates_with_no_data)
+  validate_boolean(args$include_observation_values)
+
+  # Validation - dates
+  date_lst <- list(
+    args$observation_start,
+    args$observation_end,
+    args$observation_date,
+    args$realtime_start,
+    args$realtime_end,
+    args$vintage_dates
+  )
+
+  date_nms <- list("observation_start", "observation_end", "observation_date",
+                   "realtime_start", "realtime_end", "vintage_dates")
+
+  mapply(validate_is_class, date_lst, date_nms, MoreArgs = list(x_class = "Date"))
+
+  # Validation - times
+  time_lst <- list(
+    args$start_time,
+    args$end_time
+  )
+
+  time_nms <- list("start_time", "end_time")
+
+  mapply(
+    validate_is_class,
+    time_lst, time_nms,
+    MoreArgs = list(x_class = c("POSIXct", "POSIXlt", "POSIXt"))
+  )
+
+  # Formatting - integer values
+  args$limit      <- force_integer(args$limit)
+  args$release_id <- force_integer(args$release_id)
+  args$source_id  <- force_integer(args$source_id)
+  args$element_id <- force_integer(args$element_id)
+
+  # Formatting - boolean values
+  args$include_release_dates_with_no_data <- format_boolean(
+    args$include_release_dates_with_no_data
+  )
+  args$include_observation_values <- format_boolean(
+    args$include_observation_values
+  )
+
+  # Formatting - dates
+  args$observation_start <- format_fred_date(args$observation_start)
+  args$observation_end   <- format_fred_date(args$observation_end)
+  args$observation_date  <- format_fred_date(args$observation_date)
+  args$realtime_start    <- format_fred_date(args$realtime_start)
+  args$realtime_end      <- format_fred_date(args$realtime_end)
+  args$vintage_dates     <- format_fred_date(args$vintage_dates)
+
+  # Formatting - time
+  args$start_time <- format_fred_time(args$start_time)
+  args$end_time   <- format_fred_time(args$end_time)
+
+  # Formatting - tags
+  args$tag_names         <- format_tag_names(args$tag_names)
+  args$exclude_tag_names <- format_tag_names(args$exclude_tag_names)
+
+  # Return list for use in API call
+  args
+}
+
+# ------------------------------------------------------------------------------
+# Validation helpers
+
+validate_is_class <- function(x, x_nm, x_class) {
+  if(is.null(x)) return(x)
+
+  if(!inherits(x, x_class)) {
+    msg <- paste0("Argument `", x_nm, "` must be a `", x_class, "`.")
+    stop(msg, call. = FALSE)
+  }
+}
+
+validate_limit <- function(x) {
+  if(is.null(x)) return(x)
+
+  validate_is_class(x, "limit", c("integer", "numeric"))
+
+  if (!length(x) == 1) {
+    stop("`limit` must be of length 1.", call. = FALSE)
+  }
+
+  if(x <= 0) {
+    stop("`limit` must be a non-negative integer.", call. = FALSE)
+  }
+}
+
+validate_series_id <- function(x) {
+  if(is.null(x)) {
+    stop("Argument `series_id` must be supplied.", call. = FALSE)
+  }
+
+  validate_is_class(x, "series_id", "character")
+
+  if(! (length(x) == 1) ) {
+    stop("Argument `series_id` must be of length 1.", call. = FALSE)
+  }
+}
+
+validate_release_id <- function(x) {
+  if(is.null(x)) {
+    stop("Argument `release_id` must be supplied.", call. = FALSE)
+  }
+
+  validate_is_class(x, "release_id", c("integer", "numeric"))
+
+  if(! (length(x) == 1) ) {
+    stop("Argument `release_id` must be of length 1.", call. = FALSE)
+  }
+}
+
+validate_source_id <- function(x) {
+  if(is.null(x)) {
+    stop("Argument `source_id` must be supplied.", call. = FALSE)
+  }
+
+  validate_is_class(x, "source_id", c("integer", "numeric"))
+
+  if(! (length(x) == 1) ) {
+    stop("Argument `source_id` must be of length 1.", call. = FALSE)
+  }
+}
+
+validate_category_id <- function(x) {
+
+  validate_is_class(x, "category_id", c("integer", "numeric"))
+
+  if(! (length(x) == 1) ) {
+    stop("Argument `category_id` must be of length 1.", call. = FALSE)
+  }
+}
+
+validate_required_string_param <- function(x) {
+
+  x_nm <- deparse(substitute(x))
+
+  if(is.null(x)) {
+    msg <- paste0("Argument `", x_nm, "` must be supplied.")
+    stop(msg, call. = FALSE)
+  }
+
+  validate_is_class(x, x_nm, "character")
+
+  if(! (length(x) == 1) ) {
+    msg <- paste0("Argument `", x_nm, "` must be of length 1.")
+    stop(msg, call. = FALSE)
+  }
+
+}
+
+validate_boolean <- function(x) {
+  if(is.null(x)) return(x)
+
+  validate_is_class(x, "include_release_dates_with_no_data", "logical")
+
+}
+
+validate_endpoint <- function(x) {
+
+  validate_is_class(x, "endpoint", "character")
+
+  if(! (length(x) == 1) ) {
+    stop("x must be of length 1.", call. = FALSE)
+  }
+
+  if (!is_endpoint(x)) {
+    msg <- paste0(
+      "`", x,
+      "` is not a valid endpoint.  See ",
+      "https://research.stlouisfed.org/docs/api/fred/"
+    )
+    stop(msg,  call. = FALSE)
+  }
+
+}
+
+# ------------------------------------------------------------------------------
+# Extra helpers
+
+format_fred_date <- function(x) {
+  if(is.null(x)) return(x)
+
+  format(x, "%Y-%m-%d")
+}
+
+format_tag_names <- function(x) {
+  if(is.null(x)) return(x)
+
+  gsub("\\+", " ", x)
+}
+
+format_fred_time <- function(x) {
+  if(is.null(x)) return(x)
+
+  format(x, "%Y%m%d%H%M%S")
+}
+
+format_boolean <- function(x) {
+  if(is.null(x)) return(x)
+
+  ifelse(x, "true", "false")
+
+}
+
+list_named <- function(...) {
+  lapply(rlang::enquos(..., .named = TRUE), rlang::eval_tidy)
+}
+
+force_integer <- function(x) {
+  if(is.null(x)) return(x)
+
+  if(is.integer(x)) {
+    x
+  } else {
+    as.integer(x)
+  }
+}
+
+is_endpoint <- function(x) {
+  x %in% c(
+    "category",
+    "category/children",
+    "category/related",
+    "category/series",
+    "category/tags",
+    "category/related_tags",
+    "series",
+    "series/search",
+    "series/updates",
+    "series/categories",
+    "series/search/tags",
+    "series/search/related_tags",
+    "series/release",
+    "series/observations",
+    "series/vintagedates",
+    "series/tags",
+    "release",
+    "releases",
+    "releases/dates",
+    "release/dates",
+    "release/series",
+    "release/sources",
+    "release/tags",
+    "release/related_tags",
+    "release/tables",
+    "source",
+    "sources",
+    "source/releases",
+    "tags",
+    "related_tags",
+    "tags/series"
+  )
+}
+
+```
+
+
+## US GDP from Jan 1st, 1990 to today
+```{r}
+#See https://fred.stlouisfed.org/docs/api/fred/ for FRED Data information
+
+
+#See https://fred.stlouisfed.org/tags/series for series IDs
+fredr(series_id = "UNRATE",
+  observation_start = as.Date("1990-01-01"))
+
+
+#US GDP from Jan 1st 1990 to now
+GDP <- fredr(series_id = "GDP",
+  observation_start = as.Date("1990-01-01"))
+
+GDP %>%
+  ggplot(aes(x = date, y = value)) +
+  geom_line()  +
+  ggtitle("GDP for US in Billions of Dollars") +
+  labs(x = "Date", y = "Billions of Dollars")
+```
+[Us GDP has steadily increased since 1990 with slight deviations from norm in 2009 and most recently 2020.  2009 deviation explained by 2008 financial crisis, and 2020 deviation explained by the COVID pandemic.]
+
+
+## Percentage Change in Richmond, Virginia Poverty Rate since January 7,1990
+```{r}
+#Change in Richmond, Virginia Poverty Rate since January 7,1990
+RVA_POV <- fredr(series_id = "S1701ACS051760",
+  observation_start = as.Date("2013-01-01"),
+  frequency = "a")
+
+RVA_POV %>%
+  ggplot(aes(x = date, y = value)) +
+  geom_line()  +
+  ggtitle("Poverty Rate for Richmond VA") +
+  labs(x = "Date", y = "% of Population")
+
+```
+
+[Poverty Rate in Richmond, Virginia has decreased since 2013 from 25.6% to 24.5%. With an economy that improved substantially during this time period, this observation doesn't seem difficult to imagine]
+
+```{r}
+#Home ownership rate for Virginia
+VA_Home <- fredr(series_id = "VAHOWN",
+  observation_start = as.Date("1984-01-01"),
+  frequency = "a")
+
+VA_Home %>%
+  ggplot(aes(x = date, y = value)) +
+  geom_line()  +
+  ggtitle("Home Ownership in VA") +
+  labs(x = "Date", y = "% in Population")
+```
+[Home Ownership in Virginia appears to have peaks in 1989, 1994, 2001, 2003, 2007, 2013, 2017 and 2019.  From this visualization you can clearly see the  the housing bubble in the early 2000s that led to the 2008 financial crisis.  Home ownership appears to have a slight decline since 2007.]
+
+## Correlation Analysis of TIPS Interest Rates and NYSE Stock Prices
+```{r}
+#Daily Interest Rates for 10 Year Treasury Inflation Indexed Securities
+T_INT_RATES <- fredr(series_id = "DFII10",
+  observation_start = as.Date("2003-01-02"),
+  frequency = "d")
+
+#Daily Stock Data is downloaded using quantmod
+DJI <- getSymbols("DIA", src = "yahoo", from = '2003-01-02', to = "2020-07-31", auto.assign = TRUE)
+
+DIA_Daily_Return <- dailyReturn(DIA)
+
+#Daily Stock Prices are Plotted
+DIA_Daily_Return %>%
+  ggplot(aes(x = index(DIA_Daily_Return), y = daily.returns)) +
+  geom_line(size=0.5, color="steel blue") +
+  ggtitle("Daily Return for Dow Jones ETF since 2003") +
+  scale_x_date(date_breaks = "years", date_labels = "%Y") +
+  labs(x = "Date", y = "Adjusted Price")
+
+#Left Join by Date
+DIA_Daily_Return <- data.frame(DIA_Daily_Return)
+
+DIA_Daily_Return$date <- as.Date(rownames(DIA_Daily_Return))
+
+T_INT_RATES$TIPS_Rate <- T_INT_RATES$value
+
+Int_Rate_Stock_Data <- merge(x = DIA_Daily_Return, y = T_INT_RATES, by = "date", all.x = TRUE)
+
+head(Int_Rate_Stock_Data)
+
+cor.test(Int_Rate_Stock_Data$daily.returns, Int_Rate_Stock_Data$TIPS_Rate)
+
+
+```
+[Similarly, this analysis was done to try to determine if there was a strong correlation between the Dow Jones and Interest Rates for 10 Year Treasury Inflation Indexed Securities.  The thought behind this was increased TIP rates signaled an improving economy thus causing an increase in the price of the Dow Jones Index and in this case an ETF. With a P value above the .05 threshold there is not enough evidence to suggest a relationship exists.]
+
+
+
+## Correlation Analysis of TIPS Interest Rates and GDP
+```{r}
+#Daily Interest Rates for S&P/Case-Shiller U.S. National Home Price Index
+HPI <- fredr(series_id = "CSUSHPINSA",
+  observation_start = as.Date("2003-01-02"),
+  frequency = "m")
+
+#Daily Stock Data is downloaded using quantmod
+DJI <- getSymbols("DIA", src = "yahoo", from = '2003-01-02', to = "2020-05-31", auto.assign = TRUE)
+
+DIA_Monthly_Return <- monthlyReturn(DIA)
+
+#Left Join by Date
+DIA_Monthly_Return <- data.frame(DIA_Monthly_Return)
+
+DIA_Monthly_Return$date <- seq(as.Date("2003/1/1"), as.Date("2020/5/31"), by = "month")
+
+HPI$index <- HPI$value
+
+HPI_Stock_Data <- merge(x = DIA_Monthly_Return, y = HPI, by = "date", all.x = TRUE)
+
+head(HPI_Stock_Data)
+
+cor.test(HPI_Stock_Data$monthly.returns, HPI_Stock_Data$index)
+
+```
+[Similarly to the two analyses above, this analysis is done to determine if there was a relationship between the DJI and the S&P/Case-Schiller Housing Price Index.  The thought behind this was an increased housing price index signaled an improving economy,  causing an increase in the price of the Dow Jones Index and in this case an ETF. With a P value above the .05 threshold there is not enough evidence to suggest a relationship exists.]
+
+## Total Gross Domestic Product Map by State
+```{r}
+#https://fred.stlouisfed.org/release?rid=140
+
+#Created list of FRED variables.  Values were divided into x and y groups because for some reason R would not run all of the variables in one group
+x <- list("CARGSP","TXNGSP", "NYNGSP","FLNGSP","OHNGSP", "WANGSP","CONGSP","MINGSP","MANGSP","AZNGSP","HINGSP","PANGSP", "NJNGSP","ILNGSP","NCNGSP","ALNGSP","MONGSP","LANGSP","WINGSP","MNNGSP","ORNGSP","MSNGSP","SCNGSP","CTNGSP","INNGSP","TNNGSP","KYNGSP","AKNGSP","DCNGSP","GANGSP","VANGSP","UTNGSP","IANGSP","NMNGSP","NDNGSP","WVNGSP","WYNGSP","MDNGSP","NENGSP","MENGSP","IDNGSP","NVNGSP","MTNGSP","KSNGSP","RINGSP","OKNGSP","VTNGSP","SDNGSP","ARNGSP","NHNGSP","DENGSP")
+
+
+
+z <- list("California", "Texas", "New York","Florida","Ohio", "Washington", "Colorado","Michigan", "Massachusetts","Arizona","Hawaii","Pennsylvania","New Jersey","Illinois","North Carolina","Alabama","Missouri","Louisiana","Wisconsin","Minnesota","Oregon","Mississippi","South Carolina","Connecticut","Indiana","Tennessee","Kentucky","Alaska", "District of Columbia","Georgia","Virginia","Utah","Iowa","New Mexico","North Dakota","West Virginia","Wyoming","Maryland","Nebraska","Maine","Idaho","Nevada","Montana","Kansas","Rhode Island","Oklahoma","Vermont","South Dakota","Arkansas","New Hampshire","Delaware")
+
+#Loop Designed to run this function and name datasets by the FRED variable.
+for (p in x){
+  
+name <- fredr(series_id = p,
+  observation_start = as.Date("2003-01-02"),
+  frequency = "a")
+
+assign(p, name)
+
+}
+
+#Using the rbind function to combine all rows together for a full dataset with all states and years in one table
+GDP_ALL <- rbind(CARGSP$value,TXNGSP$value, NYNGSP$value,FLNGSP$value,OHNGSP$value, WANGSP$value,CONGSP$value,MINGSP$value,MANGSP$value,AZNGSP$value,HINGSP$value,PANGSP$value, NJNGSP$value,ILNGSP$value,NCNGSP$value,ALNGSP$value,MONGSP$value,LANGSP$value,WINGSP$value, MNNGSP$value,ORNGSP$value,MSNGSP$value,SCNGSP$value,CTNGSP$value,INNGSP$value,TNNGSP$value,KYNGSP$value,AKNGSP$value,DCNGSP$value,GANGSP$value,VANGSP$value,UTNGSP$value,IANGSP$value,NMNGSP$value,NDNGSP$value,WVNGSP$value,WYNGSP$value,MDNGSP$value,NENGSP$value,MENGSP$value,IDNGSP$value,NVNGSP$value,MTNGSP$value,KSNGSP$value,RINGSP$value,OKNGSP$value,VTNGSP$value,SDNGSP$value,ARNGSP$value,NHNGSP$value,DENGSP$value)
+
+value = c("California", "Texas", "New York","Florida","Ohio", "Washington", "Colorado","Michigan", "Massachusetts","Arizona","Hawaii","Pennsylvania","New Jersey","Illinois","North Carolina","Alabama","Missouri","Louisiana","Wisconsin","Minnesota","Oregon","Mississippi","South Carolina","Connecticut","Indiana","Tennessee","Kentucky","Alaska", "District of Columbia","Georgia","Virginia","Utah","Iowa","New Mexico","North Dakota","West Virginia","Wyoming","Maryland","Nebraska","Maine","Idaho","Nevada","Montana","Kansas","Rhode Island","Oklahoma","Vermont","South Dakota","Arkansas","New Hampshire","Delaware")
+
+#Changing row names to the states listed above
+row.names(GDP_ALL) <- value
+
+#column names are changed to years 2003-2019
+ colnames(GDP_ALL) <- c("2003", "2004", "2005", "2006", "2007", "2008", "2009", "2010", "2011", "2012", "2013",
+"2014", "2015", "2016", "2017", "2018", "2019")
+
+
+#Part 1: Map of States
+ 
+ #To create each map, new datasets were created for each year, variables are renamed and columns are erased.  This was done 17 times for years 2003 to 2019
+ 
+ ####### 2003
+Year2003 <- data.frame(GDP_ALL[,1])
+
+Year2003$year <- 2003
+
+Year2003$GDP <- Year2003$GDP_ALL...1.
+
+Year2003$state <- c("california", "texas", "new york","florida","ohio", "washington", "colorado","michigan", "massachusetts","arizona","hawaii","pennsylvania","new jersey","illinois","north carolina","alabama","missouri","louisiana","wisconsin","minnesota","oregon","mississippi","south carolina","connecticut","indiana","tennessee","kentucky","alaska", "district of columbia","georgia","virginia","utah","iowa","new mexico","north dakota","west virginia","wyoming","maryland","nebraska","maine","idaho","nevada","montana","kansas","rhode island","oklahoma","vermont","south dakota","arkansas","new hampshire","delaware")
+
+Year2003 = select(Year2003, -c("GDP_ALL...1."))
+
+####### 2004
+Year2004 <- data.frame(GDP_ALL[,2])
+
+Year2004$year <- 2004
+
+Year2004$GDP <- Year2004[,1]
+
+Year2004$state <- c("california", "texas", "new york","florida","ohio", "washington", "colorado","michigan", "massachusetts","arizona","hawaii","pennsylvania","new jersey","illinois","north carolina","alabama","missouri","louisiana","wisconsin","minnesota","oregon","mississippi","south carolina","connecticut","indiana","tennessee","kentucky","alaska", "district of columbia","georgia","virginia","utah","iowa","new mexico","north dakota","west virginia","wyoming","maryland","nebraska","maine","idaho","nevada","montana","kansas","rhode island","oklahoma","vermont","south dakota","arkansas","new hampshire","delaware")
+
+Year2004 = Year2004[,-1]
+
+
+######### 2005
+Year2005 <- data.frame(GDP_ALL[,3])
+
+Year2005$year <- 2005
+
+Year2005$GDP <- Year2005[,1]
+
+Year2005$state <- c("california", "texas", "new york","florida","ohio", "washington", "colorado","michigan", "massachusetts","arizona","hawaii","pennsylvania","new jersey","illinois","north carolina","alabama","missouri","louisiana","wisconsin","minnesota","oregon","mississippi","south carolina","connecticut","indiana","tennessee","kentucky","alaska", "district of columbia","georgia","virginia","utah","iowa","new mexico","north dakota","west virginia","wyoming","maryland","nebraska","maine","idaho","nevada","montana","kansas","rhode island","oklahoma","vermont","south dakota","arkansas","new hampshire","delaware")
+
+Year2005 = Year2005[,-1]
+
+#########  2006
+Year2006 <- data.frame(GDP_ALL[,4])
+
+Year2006$year <- 2006
+
+Year2006$GDP <- Year2006[,1]
+
+Year2006$state <- c("california", "texas", "new york","florida","ohio", "washington", "colorado","michigan", "massachusetts","arizona","hawaii","pennsylvania","new jersey","illinois","north carolina","alabama","missouri","louisiana","wisconsin","minnesota","oregon","mississippi","south carolina","connecticut","indiana","tennessee","kentucky","alaska", "district of columbia","georgia","virginia","utah","iowa","new mexico","north dakota","west virginia","wyoming","maryland","nebraska","maine","idaho","nevada","montana","kansas","rhode island","oklahoma","vermont","south dakota","arkansas","new hampshire","delaware")
+
+Year2006 = Year2006[,-1]
+
+#########   2007
+Year2007 <- data.frame(GDP_ALL[,5])
+
+Year2007$year <- 2007
+
+Year2007$GDP <- Year2007[,1]
+
+Year2007$state <- c("california", "texas", "new york","florida","ohio", "washington", "colorado","michigan", "massachusetts","arizona","hawaii","pennsylvania","new jersey","illinois","north carolina","alabama","missouri","louisiana","wisconsin","minnesota","oregon","mississippi","south carolina","connecticut","indiana","tennessee","kentucky","alaska", "district of columbia","georgia","virginia","utah","iowa","new mexico","north dakota","west virginia","wyoming","maryland","nebraska","maine","idaho","nevada","montana","kansas","rhode island","oklahoma","vermont","south dakota","arkansas","new hampshire","delaware")
+
+Year2007 = Year2007[,-1]
+
+#########   2008
+Year2008 <- data.frame(GDP_ALL[,6])
+
+Year2008$year <- 2008
+
+Year2008$GDP <- Year2008[,1]
+
+Year2008$state <- c("california", "texas", "new york","florida","ohio", "washington", "colorado","michigan", "massachusetts","arizona","hawaii","pennsylvania","new jersey","illinois","north carolina","alabama","missouri","louisiana","wisconsin","minnesota","oregon","mississippi","south carolina","connecticut","indiana","tennessee","kentucky","alaska", "district of columbia","georgia","virginia","utah","iowa","new mexico","north dakota","west virginia","wyoming","maryland","nebraska","maine","idaho","nevada","montana","kansas","rhode island","oklahoma","vermont","south dakota","arkansas","new hampshire","delaware")
+
+Year2008 = Year2008[,-1]
+
+#########   2009
+Year2009 <- data.frame(GDP_ALL[,7])
+
+Year2009$year <- 2009
+
+Year2009$GDP <- Year2009[,1]
+
+Year2009$state <- c("california", "texas", "new york","florida","ohio", "washington", "colorado","michigan", "massachusetts","arizona","hawaii","pennsylvania","new jersey","illinois","north carolina","alabama","missouri","louisiana","wisconsin","minnesota","oregon","mississippi","south carolina","connecticut","indiana","tennessee","kentucky","alaska", "district of columbia","georgia","virginia","utah","iowa","new mexico","north dakota","west virginia","wyoming","maryland","nebraska","maine","idaho","nevada","montana","kansas","rhode island","oklahoma","vermont","south dakota","arkansas","new hampshire","delaware")
+
+Year2009 = Year2009[,-1]
+
+#########   2010
+Year2010 <- data.frame(GDP_ALL[,8])
+
+Year2010$year <- 2010
+
+Year2010$GDP <- Year2010[,1]
+
+Year2010$state <- c("california", "texas", "new york","florida","ohio", "washington", "colorado","michigan", "massachusetts","arizona","hawaii","pennsylvania","new jersey","illinois","north carolina","alabama","missouri","louisiana","wisconsin","minnesota","oregon","mississippi","south carolina","connecticut","indiana","tennessee","kentucky","alaska", "district of columbia","georgia","virginia","utah","iowa","new mexico","north dakota","west virginia","wyoming","maryland","nebraska","maine","idaho","nevada","montana","kansas","rhode island","oklahoma","vermont","south dakota","arkansas","new hampshire","delaware")
+
+Year2010 = Year2010[,-1]
+
+
+#########   2011
+Year2011 <- data.frame(GDP_ALL[,9])
+
+Year2011$year <- 2011
+
+Year2011$GDP <- Year2011[,1]
+
+Year2011$state <- c("california", "texas", "new york","florida","ohio", "washington", "colorado","michigan", "massachusetts","arizona","hawaii","pennsylvania","new jersey","illinois","north carolina","alabama","missouri","louisiana","wisconsin","minnesota","oregon","mississippi","south carolina","connecticut","indiana","tennessee","kentucky","alaska", "district of columbia","georgia","virginia","utah","iowa","new mexico","north dakota","west virginia","wyoming","maryland","nebraska","maine","idaho","nevada","montana","kansas","rhode island","oklahoma","vermont","south dakota","arkansas","new hampshire","delaware")
+
+Year2011 = Year2011[,-1]
+
+#########   2012
+Year2012 <- data.frame(GDP_ALL[,10])
+
+Year2012$year <- 2012
+
+Year2012$GDP <- Year2012[,1]
+
+Year2012$state <- c("california", "texas", "new york","florida","ohio", "washington", "colorado","michigan", "massachusetts","arizona","hawaii","pennsylvania","new jersey","illinois","north carolina","alabama","missouri","louisiana","wisconsin","minnesota","oregon","mississippi","south carolina","connecticut","indiana","tennessee","kentucky","alaska", "district of columbia","georgia","virginia","utah","iowa","new mexico","north dakota","west virginia","wyoming","maryland","nebraska","maine","idaho","nevada","montana","kansas","rhode island","oklahoma","vermont","south dakota","arkansas","new hampshire","delaware")
+
+Year2012 = Year2012[,-1]
+
+#########   2013
+Year2013 <- data.frame(GDP_ALL[,11])
+
+Year2013$year <- 2013
+
+Year2013$GDP <- Year2013[,1]
+
+Year2013$state <- c("california", "texas", "new york","florida","ohio", "washington", "colorado","michigan", "massachusetts","arizona","hawaii","pennsylvania","new jersey","illinois","north carolina","alabama","missouri","louisiana","wisconsin","minnesota","oregon","mississippi","south carolina","connecticut","indiana","tennessee","kentucky","alaska", "district of columbia","georgia","virginia","utah","iowa","new mexico","north dakota","west virginia","wyoming","maryland","nebraska","maine","idaho","nevada","montana","kansas","rhode island","oklahoma","vermont","south dakota","arkansas","new hampshire","delaware")
+
+Year2013 = Year2013[,-1]
+
+#########    2014
+Year2014 <- data.frame(GDP_ALL[,12])
+
+Year2014$year <- 2014
+
+Year2014$GDP <- Year2014[,1]
+
+Year2014$state <- c("california", "texas", "new york","florida","ohio", "washington", "colorado","michigan", "massachusetts","arizona","hawaii","pennsylvania","new jersey","illinois","north carolina","alabama","missouri","louisiana","wisconsin","minnesota","oregon","mississippi","south carolina","connecticut","indiana","tennessee","kentucky","alaska", "district of columbia","georgia","virginia","utah","iowa","new mexico","north dakota","west virginia","wyoming","maryland","nebraska","maine","idaho","nevada","montana","kansas","rhode island","oklahoma","vermont","south dakota","arkansas","new hampshire","delaware")
+
+Year2014 = Year2014[,-1]
+
+#########    2015
+Year2015 <- data.frame(GDP_ALL[,13])
+
+Year2015$year <- 2015
+
+Year2015$GDP <- Year2015[,1]
+
+Year2015$state <- c("california", "texas", "new york","florida","ohio", "washington", "colorado","michigan", "massachusetts","arizona","hawaii","pennsylvania","new jersey","illinois","north carolina","alabama","missouri","louisiana","wisconsin","minnesota","oregon","mississippi","south carolina","connecticut","indiana","tennessee","kentucky","alaska", "district of columbia","georgia","virginia","utah","iowa","new mexico","north dakota","west virginia","wyoming","maryland","nebraska","maine","idaho","nevada","montana","kansas","rhode island","oklahoma","vermont","south dakota","arkansas","new hampshire","delaware")
+
+Year2015 = Year2015[,-1]
+
+#########    2016
+Year2016 <- data.frame(GDP_ALL[,14])
+
+Year2016$year <- 2016
+
+Year2016$GDP <- Year2016[,1]
+
+Year2016$state <- c("california", "texas", "new york","florida","ohio", "washington", "colorado","michigan", "massachusetts","arizona","hawaii","pennsylvania","new jersey","illinois","north carolina","alabama","missouri","louisiana","wisconsin","minnesota","oregon","mississippi","south carolina","connecticut","indiana","tennessee","kentucky","alaska", "district of columbia","georgia","virginia","utah","iowa","new mexico","north dakota","west virginia","wyoming","maryland","nebraska","maine","idaho","nevada","montana","kansas","rhode island","oklahoma","vermont","south dakota","arkansas","new hampshire","delaware")
+
+Year2016 = Year2016[,-1]
+
+#########    2017
+Year2017 <- data.frame(GDP_ALL[,15])
+
+Year2017$year <- 2017
+
+Year2017$GDP <- Year2017[,1]
+
+Year2017$state <- c("california", "texas", "new york","florida","ohio", "washington", "colorado","michigan", "massachusetts","arizona","hawaii","pennsylvania","new jersey","illinois","north carolina","alabama","missouri","louisiana","wisconsin","minnesota","oregon","mississippi","south carolina","connecticut","indiana","tennessee","kentucky","alaska", "district of columbia","georgia","virginia","utah","iowa","new mexico","north dakota","west virginia","wyoming","maryland","nebraska","maine","idaho","nevada","montana","kansas","rhode island","oklahoma","vermont","south dakota","arkansas","new hampshire","delaware")
+
+Year2017 = Year2017[,-1]
+
+#########   2018
+Year2018 <- data.frame(GDP_ALL[,16])
+
+Year2018$year <- 2018
+
+Year2018$GDP <- Year2018[,1]
+
+Year2018$state <- c("california", "texas", "new york","florida","ohio", "washington", "colorado","michigan", "massachusetts","arizona","hawaii","pennsylvania","new jersey","illinois","north carolina","alabama","missouri","louisiana","wisconsin","minnesota","oregon","mississippi","south carolina","connecticut","indiana","tennessee","kentucky","alaska", "district of columbia","georgia","virginia","utah","iowa","new mexico","north dakota","west virginia","wyoming","maryland","nebraska","maine","idaho","nevada","montana","kansas","rhode island","oklahoma","vermont","south dakota","arkansas","new hampshire","delaware")
+
+Year2018 = Year2018[,-1]
+
+#########    2019
+Year2019 <- data.frame(GDP_ALL[,17])
+
+Year2019$year <- 2019
+
+Year2019$GDP <- Year2019[,1]
+
+Year2019$state <- c("california", "texas", "new york","florida","ohio", "washington", "colorado","michigan", "massachusetts","arizona","hawaii","pennsylvania","new jersey","illinois","north carolina","alabama","missouri","louisiana","wisconsin","minnesota","oregon","mississippi","south carolina","connecticut","indiana","tennessee","kentucky","alaska", "district of columbia","georgia","virginia","utah","iowa","new mexico","north dakota","west virginia","wyoming","maryland","nebraska","maine","idaho","nevada","montana","kansas","rhode island","oklahoma","vermont","south dakota","arkansas","new hampshire","delaware")
+
+Year2019 = Year2019[,-1]
+
+#########################################################################
+
+#Rows from seperate datasets are bound together
+GroupTable <- bind_rows(Year2003,Year2004,Year2005,Year2006,Year2007,Year2008,Year2009,Year2010,Year2011,Year2012,Year2013,Year2014,Year2015,Year2016,Year2017,Year2018,Year2019, .id = "df") 
+
+#Using this function I was able to derive Long and Lat values for each state
+MainStates <- map_data("state")
+
+MainStates$state <- MainStates$region
+
+merged = GroupTable %>% inner_join(MainStates, by = "state")
+
+#Function was designed to create a facet_wrap with ggplot meaning separate maps for separate years to show any trends over time.  This functionality makes time series analyses easier
+p <- ggplot()
+
+p0 <- p + geom_polygon (data=merged, aes( x = long, y = lat, group = group, fill= GDP), 
+                       color = "white", size = 0.2)
+
+p1 <- p0 + geom_polygon(color = "gray90", size = 0.05) +
+    coord_map(projection = "albers", lat0 = 39, lat1 = 45) 
+
+p2 <- p1 + scale_fill_viridis_c(option = "plasma")
+
+
+p2 + theme_map() + facet_wrap(~ year, ncol = 3) +
+    theme(legend.position = "bottom",
+          strip.background = element_blank()) +
+    labs(fill = "Total Annual GDP",
+         title = "Total GDP by Year and by State, 2003-2019")  
+```
+
+
+[This analysis was done to visualize Total GDP spread by state through years 2003 - 2019.  Given the mass of data, the visualizations are a bit smaller than anticipated but general trends are: California has the highest total GDP of all states and this increases by the year as shown by the increased yellow tint, Texas appears to have the second highest total GDP in comparison with an increasing trend through the years.]
+
+
+### Total GDP by State by Year, A Heat Map
+```{r}
+
+z = ztable(GDP_ALL) 
+
+makeHeatmap(z)
+
+```
+
+[This analysis is much easier to read than the map above. Using the heat map we can easily see that California has the highest GDP of all states for every year, followed by Texas and New York.  The general trend is an increase in total GDP from 2003 to 2019.]
+

@@ -283,13 +283,13 @@ multiple_stocks_daily <- BatchGetSymbols(tickers,
 ##    tickers =RSP, DIA, AAPL, DIS, GOOG, BAR, UAL
 ##    Downloading data for benchmark ticker
 ## ^GSPC | yahoo (1|1) | Found cache file
-## RSP | yahoo (1|7) | Found cache file - Got 100% of valid prices | Well done!
-## DIA | yahoo (2|7) | Found cache file - Got 100% of valid prices | Feliz que nem lambari de sanga!
-## AAPL | yahoo (3|7) | Found cache file - Got 100% of valid prices | Well done!
-## DIS | yahoo (4|7) | Found cache file - Got 100% of valid prices | Youre doing good!
+## RSP | yahoo (1|7) | Found cache file - Got 100% of valid prices | Feels good!
+## DIA | yahoo (2|7) | Found cache file - Got 100% of valid prices | Looking good!
+## AAPL | yahoo (3|7) | Found cache file - Got 100% of valid prices | Got it!
+## DIS | yahoo (4|7) | Found cache file - Got 100% of valid prices | OK!
 ## GOOG | yahoo (5|7) | Found cache file - Got 100% of valid prices | Got it!
-## BAR | yahoo (6|7) | Found cache file - Got 20.9% of valid prices | OUT: not enough data (thresh.bad.data = 75.0%)
-## UAL | yahoo (7|7) | Found cache file - Got 100% of valid prices | Got it!
+## BAR | yahoo (6|7) | Found cache file - Got 21% of valid prices | OUT: not enough data (thresh.bad.data = 75%)
+## UAL | yahoo (7|7) | Found cache file - Got 100% of valid prices | Youre doing good!
 ```
 
 ```r
