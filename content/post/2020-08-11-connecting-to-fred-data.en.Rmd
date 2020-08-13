@@ -2074,6 +2074,7 @@ z = ztable(GDP_ALL)
 
 makeHeatmap(z)
 
+
 ```
 
 [This analysis is much easier to read than the map above. Using the heat map we can easily see that California has the highest GDP of all states for every year, followed by Texas and New York.  The general trend is an increase in total GDP from 2003 to 2019.]

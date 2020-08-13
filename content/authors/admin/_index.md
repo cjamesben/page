@@ -10,7 +10,7 @@ interests:
 - Finance
 
 organizations:
-- name: Virginia Department of Health
+- name: BrownGreer
   url: ""
   
 role: Data Analyst
